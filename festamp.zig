@@ -11,9 +11,9 @@ const Time = packed struct {
 
 pub fn main() !void {
     const now = currentTime();
+    const date = @intCast(u32, now.quarter) * 16 + now.week;
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try formatHex(@intCast(u32, now.quarter) % 0x1000, 3, &buf);
-    try formatHex(now.week, 1, &buf);
+    try formatHex(@truncate(u16, date), 4, &buf);
     try buf.append(".");
     try formatHex(now.halfday, 1, &buf);
     try formatHex(now.hour, 1, &buf);
