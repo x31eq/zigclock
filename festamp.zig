@@ -15,12 +15,12 @@ pub fn main() void {
         qday += 1;
     }
     const week = @divFloor(qday + local.tm_mday + 5 - local.tm_wday, 7);
-    _ = stdio.printf(c"%03x%01x", quarter, week);
     var halfday = local.tm_wday * 2;
     if (local.tm_hour > 11) {
         halfday += 1;
     }
     var ticks = (local.tm_min * 4 + @divFloor(local.tm_sec, 15));
     ticks = @divFloor(ticks * 16,  15);
-    _ = stdio.printf(c".%01x%01x%02x\n", halfday, local.tm_hour, ticks);
+    _ = stdio.printf(c"%03x%01x.%01x%01x%02x\n",
+        quarter, week, halfday, local.tm_hour, ticks);
 }
