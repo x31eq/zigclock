@@ -13,11 +13,11 @@ pub fn main() !void {
     const now = currentTime();
     const date = @intCast(u32, now.quarter) * 16 + now.week;
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try formatHex(@truncate(u16, date), 4, &buf);
+    try formatHex(@truncate(u16, date), &buf);
     try buf.append(".");
-    try formatHex(now.halfday, 1, &buf);
-    try formatHex(now.hour, 1, &buf);
-    try formatHex(now.ticks, 2, &buf);
+    try hexDigit(now.halfday, &buf);
+    try hexDigit(now.hour, &buf);
+    try formatHex(now.ticks, &buf);
     const stdout = try std.io.getStdOut();
     try buf.append("\n");
     try stdout.write(buf.list.items);
@@ -47,14 +47,27 @@ fn currentTime() Time {
 }
 
 /// Format a number as hex appended to the given buffer
-/// zero-padded with the given width.
-fn formatHex(value: var, width: u32, buf: *std.Buffer) !void {
+/// zero-padded with width determined by the type.
+fn formatHex(value: var, buf: *std.Buffer) !void {
+    // There must be a better way.
+    // This is the best I can work out for now.
+    const bits = @typeInfo(@typeOf(value)).Int.bits;
+    return std.fmt.formatIntValue(
+            value,
+            "x",
+            std.fmt.FormatOptions{ .width = bits / 4, .fill = '0' },
+            buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+}
+
+fn hexDigit(value: var, buf: *std.Buffer) !void {
     // There must be a better way.
     // This is the best I can work out for now.
     return std.fmt.formatIntValue(
             value,
             "x",
-            std.fmt.FormatOptions{ .width = width, .fill = '0' },
+            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
             buf,
             @typeOf(std.Buffer.append).ReturnType.ErrorSet,
             std.Buffer.append);
