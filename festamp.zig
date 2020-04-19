@@ -12,15 +12,12 @@ const Time = packed struct {
 pub fn main() !void {
     const now = currentTime();
     const date = @intCast(u32, now.quarter) * 16 + now.week;
-    var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try formatHex(@truncate(u16, date), &buf);
-    try buf.append(".");
-    try hexDigit(now.halfday, &buf);
-    try hexDigit(now.hour, &buf);
-    try formatHex(now.ticks, &buf);
     const stdout = try std.io.getStdOut();
-    try buf.append("\n");
-    try stdout.write(buf.list.items);
+    var arrbuf = "xxxx.xxxx\n";
+    _ = try std.fmt.bufPrint(arrbuf[0..],
+            "{x:0>4}.{x:0>1}{x:0>1}{x:0>2}",
+            @truncate(u16, date), now.halfday, now.hour, now.ticks);
+    try stdout.write(arrbuf);
 }
 
 fn currentTime() Time {
@@ -44,29 +41,4 @@ fn currentTime() Time {
         .hour = @intCast(u8, local.tm_hour) % 12,
         .ticks = @truncate(u8, @intCast(u32, ticks * 16) / 15),
     };
-}
-
-/// Format a number as hex appended to the given buffer
-/// zero-padded with width determined by the type.
-fn formatHex(value: var, buf: *std.Buffer) !void {
-    // There must be a better way.
-    // This is the best I can work out for now.
-    const bits = @typeInfo(@typeOf(value)).Int.bits;
-    return std.fmt.formatIntValue(
-            value,
-            "x",
-            std.fmt.FormatOptions{ .width = bits / 4, .fill = '0' },
-            buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
-}
-
-fn hexDigit(value: u8, buf: *std.Buffer) !void {
-    // Based on the private std.fmt.digitToChar
-    const digit = switch (value) {
-        0...9 => value + '0',
-        10...15 => value + (u8('a') - 10),
-        else => unreachable,
-    };
-    return buf.appendByte(digit);
 }
