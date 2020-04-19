@@ -1,11 +1,12 @@
+const std = @import("std");
 const time = @cImport(@cInclude("time.h"));
 const stdio = @cImport(@cInclude("stdio.h"));
 
 pub fn main() void {
-    var timestamp: time.timespec = undefined;
     var local: time.tm = undefined;
-    _ = time.clock_gettime(time.CLOCK_REALTIME, &timestamp);
-    _ = time.localtime_r(&timestamp.tv_sec, &local);
+
+    var timestamp = std.time.timestamp();
+    _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
     const year = local.tm_year + 1900;
     const month = local.tm_mon;
     const quarter = @mod(year, 1024) * 4 + @divFloor(month, 3);
