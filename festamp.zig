@@ -33,11 +33,15 @@ pub fn main() !void {
     try stdout.write("\n");
 }
 
+/// Format a number as hex appended to the given buffer
+/// zero-padded with the given width.
 fn formatHex(
     value: var,
     width: u32,
     buf: *std.Buffer,
 ) !void {
+    // There must be a better way.
+    // This is the best I can work out for now.
     try std.fmt.formatIntValue(
             @intCast(u64, value),
             "x",
