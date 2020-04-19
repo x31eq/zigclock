@@ -22,46 +22,29 @@ pub fn main() !void {
     ticks = @divFloor(ticks * 16,  15);
 
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try std.fmt.formatIntValue(
-            @intCast(u64, quarter),
-            "x",
-            std.fmt.FormatOptions{ .width = 3, .fill = '0' },
-            &buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
-    try std.fmt.formatIntValue(
-            @intCast(u64, week),
-            "x",
-            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
-            &buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
-
+    try formatHex(quarter, 3, &buf);
+    try formatHex(week, 1, &buf);
     const stdout = try std.io.getStdOut();
     try stdout.write(buf.list.items);
     try stdout.write(".");
     buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try std.fmt.formatIntValue(
-            @intCast(u64, halfday),
-            "x",
-            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
-            &buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
-    try std.fmt.formatIntValue(
-            @intCast(u64, local.tm_hour),
-            "x",
-            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
-            &buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
-    try std.fmt.formatIntValue(
-            @intCast(u64, ticks),
-            "x",
-            std.fmt.FormatOptions{ .width = 2, .fill = '0' },
-            &buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
+    try formatHex(halfday, 1, &buf);
+    try formatHex(local.tm_hour, 1, &buf);
+    try formatHex(ticks, 2, &buf);
     try stdout.write(buf.list.items);
     try stdout.write("\n");
+}
+
+fn formatHex(
+    value: var,
+    width: u32,
+    buf: *std.Buffer,
+) !void {
+    try std.fmt.formatIntValue(
+            @intCast(u64, value),
+            "x",
+            std.fmt.FormatOptions{ .width = width, .fill = '0' },
+            buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
 }
