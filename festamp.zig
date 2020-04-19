@@ -21,5 +21,5 @@ pub fn main() void {
     }
     var ticks = (local.tm_min * 4 + @divFloor(local.tm_sec, 15));
     ticks = @divFloor(ticks * 16,  15);
-    _ = stdio.printf(c".%01x%01x%01x\n", halfday, local.tm_hour, ticks);
+    _ = stdio.printf(c".%01x%01x%02x\n", halfday, local.tm_hour, ticks);
 }
