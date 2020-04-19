@@ -42,7 +42,7 @@ fn formatHex(
 ) !void {
     // There must be a better way.
     // This is the best I can work out for now.
-    try std.fmt.formatIntValue(
+    return std.fmt.formatIntValue(
             @intCast(u64, value),
             "x",
             std.fmt.FormatOptions{ .width = width, .fill = '0' },
