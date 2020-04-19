@@ -61,14 +61,12 @@ fn formatHex(value: var, buf: *std.Buffer) !void {
             std.Buffer.append);
 }
 
-fn hexDigit(value: var, buf: *std.Buffer) !void {
-    // There must be a better way.
-    // This is the best I can work out for now.
-    return std.fmt.formatIntValue(
-            value,
-            "x",
-            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
-            buf,
-            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
-            std.Buffer.append);
+fn hexDigit(value: u8, buf: *std.Buffer) !void {
+    // Based on the private std.fmt.digitToChar
+    const digit = switch (value) {
+        0...9 => value + '0',
+        10...15 => value + (u8('a') - 10),
+        else => unreachable,
+    };
+    return buf.appendByte(digit);
 }
