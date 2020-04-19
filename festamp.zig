@@ -24,13 +24,11 @@ pub fn main() !void {
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
     try formatHex(quarter, 3, &buf);
     try formatHex(week, 1, &buf);
-    const stdout = try std.io.getStdOut();
-    try stdout.write(buf.list.items);
-    try stdout.write(".");
-    buf = try std.Buffer.init(std.debug.global_allocator, "");
+    try buf.append(".");
     try formatHex(halfday, 1, &buf);
     try formatHex(local.tm_hour, 1, &buf);
     try formatHex(ticks, 2, &buf);
+    const stdout = try std.io.getStdOut();
     try stdout.write(buf.list.items);
     try stdout.write("\n");
 }
