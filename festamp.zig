@@ -29,8 +29,8 @@ pub fn main() !void {
     try formatHex(local.tm_hour, 1, &buf);
     try formatHex(ticks, 2, &buf);
     const stdout = try std.io.getStdOut();
+    try buf.append("\n");
     try stdout.write(buf.list.items);
-    try stdout.write("\n");
 }
 
 /// Format a number as hex appended to the given buffer
