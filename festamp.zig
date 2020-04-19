@@ -1,8 +1,7 @@
 const std = @import("std");
 const time = @cImport(@cInclude("time.h"));
-const stdio = @cImport(@cInclude("stdio.h"));
 
-pub fn main() void {
+pub fn main() !void {
     var local: time.tm = undefined;
 
     var timestamp = std.time.timestamp();
@@ -21,6 +20,48 @@ pub fn main() void {
     }
     var ticks = (local.tm_min * 4 + @divFloor(local.tm_sec, 15));
     ticks = @divFloor(ticks * 16,  15);
-    _ = stdio.printf(c"%03x%01x.%01x%01x%02x\n",
-        quarter, week, halfday, local.tm_hour, ticks);
+
+    var buf = try std.Buffer.init(std.debug.global_allocator, "");
+    try std.fmt.formatIntValue(
+            @intCast(u64, quarter),
+            "x",
+            std.fmt.FormatOptions{ .width = 3, .fill = '0' },
+            &buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+    try std.fmt.formatIntValue(
+            @intCast(u64, week),
+            "x",
+            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
+            &buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+
+    const stdout = try std.io.getStdOut();
+    try stdout.write(buf.list.items);
+    try stdout.write(".");
+    buf = try std.Buffer.init(std.debug.global_allocator, "");
+    try std.fmt.formatIntValue(
+            @intCast(u64, halfday),
+            "x",
+            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
+            &buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+    try std.fmt.formatIntValue(
+            @intCast(u64, local.tm_hour),
+            "x",
+            std.fmt.FormatOptions{ .width = 1, .fill = '0' },
+            &buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+    try std.fmt.formatIntValue(
+            @intCast(u64, ticks),
+            "x",
+            std.fmt.FormatOptions{ .width = 2, .fill = '0' },
+            &buf,
+            @typeOf(std.Buffer.append).ReturnType.ErrorSet,
+            std.Buffer.append);
+    try stdout.write(buf.list.items);
+    try stdout.write("\n");
 }
