@@ -8,7 +8,7 @@ pub fn main() !void {
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
     const year = local.tm_year + 1900;
     const month = local.tm_mon;
-    const quarter = @mod(year, 1024) * 4 + @divFloor(month, 3);
+    const quarter = year * 4 + @divFloor(month, 3);
     var qday = @divFloor(month, 3);
     if (month == 2 or month == 11) {
         qday += 1;
@@ -22,7 +22,7 @@ pub fn main() !void {
     ticks = @divFloor(ticks * 16,  15);
 
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try formatHex(quarter, 3, &buf);
+    try formatHex(@mod(quarter, 0x1000), 3, &buf);
     try formatHex(week, 1, &buf);
     try buf.append(".");
     try formatHex(halfday, 1, &buf);
