@@ -35,11 +35,7 @@ pub fn main() !void {
 
 /// Format a number as hex appended to the given buffer
 /// zero-padded with the given width.
-fn formatHex(
-    value: var,
-    width: u32,
-    buf: *std.Buffer,
-) !void {
+fn formatHex(value: var, width: u32, buf: *std.Buffer) !void {
     // There must be a better way.
     // This is the best I can work out for now.
     return std.fmt.formatIntValue(
