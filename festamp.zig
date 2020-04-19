@@ -3,16 +3,16 @@ const time = @cImport(@cInclude("time.h"));
 
 const Time = struct {
     quarter: i32,
-    week: i32,
-    halfday: i32,
-    hour: i32,
-    ticks: i32,
+    week: u16,
+    halfday: u8,
+    hour: u8,
+    ticks: u32,
 };
 
 pub fn main() !void {
     const now = currentTime();
     var buf = try std.Buffer.init(std.debug.global_allocator, "");
-    try formatHex(@mod(now.quarter, 0x1000), 3, &buf);
+    try formatHex(@intCast(u32, now.quarter) % 0x1000, 3, &buf);
     try formatHex(now.week, 1, &buf);
     try buf.append(".");
     try formatHex(now.halfday, 1, &buf);
@@ -34,17 +34,14 @@ fn currentTime() Time {
     if (month == 2 or month == 11) {
         qday += 1;
     }
-    var halfday = local.tm_wday * 2;
-    if (local.tm_hour > 11) {
-        halfday += 1;
-    }
     var ticks = (local.tm_min * 4 + @divFloor(local.tm_sec, 15));
     return Time {
         .quarter = year * 4 + @divFloor(month, 3),
-        .week = @divFloor(qday + local.tm_mday + 5 - local.tm_wday, 7),
-        .halfday = halfday,
-        .hour = @mod(local.tm_hour, 12),
-        .ticks = @divFloor(ticks * 16,  15),
+        .week = @intCast(u16, qday + local.tm_mday + 5 - local.tm_wday) / 7,
+        .halfday = @intCast(u8, local.tm_wday * 2)
+                    + @boolToInt(local.tm_hour > 11),
+        .hour = @intCast(u8, local.tm_hour) % 12,
+        .ticks = @intCast(u32, ticks * 16) / 15,
     };
 }
 
@@ -54,7 +51,7 @@ fn formatHex(value: var, width: u32, buf: *std.Buffer) !void {
     // There must be a better way.
     // This is the best I can work out for now.
     return std.fmt.formatIntValue(
-            @intCast(u64, value),
+            value,
             "x",
             std.fmt.FormatOptions{ .width = width, .fill = '0' },
             buf,
