@@ -12,7 +12,7 @@ pub fn main() void {
     const quarter = @mod(year, 1024) * 4 + @divFloor(month, 3);
     var qday = @divFloor(month, 3);
     if (month == 2 or month == 11) {
-      qday += 1;
+        qday += 1;
     }
     const week = @divFloor(qday + local.tm_mday + 5 - local.tm_wday, 7);
     _ = stdio.printf(c"%03x%01x", quarter, week);
