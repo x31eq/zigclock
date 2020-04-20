@@ -19,7 +19,7 @@ pub fn currentTime() Time {
     const month = local.tm_mon;
     var qday = @intCast(u16, month) / 3;
     if (month == 2 or month == 11) {
-        qday += 1;
+        qday -= 1;
     }
     qday += @intCast(u16, local.tm_mday + 5 - local.tm_wday);
     var sec = @intCast(u16, local.tm_sec);
@@ -51,7 +51,7 @@ pub fn decode(feetime: Time) MuggleTime {
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
                     + feetime.week / 0x55;
     var k = (month % 3) * 38 + 5;
-    if (month ==  2 or month == 11) {
+    if (month == 2 or month == 11) {
         k -= 1;
     }
     const day = feetime.week * 7 + feetime.halfday / 2
