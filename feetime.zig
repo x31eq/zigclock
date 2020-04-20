@@ -70,6 +70,8 @@ pub fn decode(feetime: Time) MuggleTime {
 /// Weekday (Sunday is 0) of the first day of the month
 /// month is 0 for January
 fn month_weekday(year: i32, month: u8) u8 {
+    std.debug.warn("Getting first day of week for {}-{}\n",
+                    year, month + 1);
     // Based on RFC 3339 Appendix B
     var Y = year;
 
@@ -83,5 +85,6 @@ fn month_weekday(year: i32, month: u8) u8 {
 
     const day = @divFloor(26 * m - 2, 10) + 1 + Y
                 + @divFloor(Y, 4) + @divFloor(cent, 4) + 5 * cent;
+    std.debug.warn("Month started on {}\n", @mod(day, 7));
     return @intCast(u8, @mod(day, 7));
 }
