@@ -49,7 +49,7 @@ const MuggleTime = packed struct {
 pub fn decode(feetime: Time) MuggleTime {
     const year = 1920 + @mod(@divFloor(feetime.quarter, 4) + 128, 1024);
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
-                    + feetime.week / 0x55;
+                    + (feetime.week * 16 + feetime.halfday) / 0x55;
     var k = (month % 3) * 38 + 5;
     if (month == 2 or month == 11) {
         k -= 1;
