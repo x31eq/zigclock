@@ -25,7 +25,7 @@ pub fn currentTime() Time {
     var sec = @intCast(u16, local.tm_sec);
     var tick = sec / 15 - sec / 60;
     sec -= tick * 15;
-    tick += @intCast(u16, local.tm_min * 4);
+    tick += @intCast(u16, local.tm_min) * 4;
     return Time {
         .quarter = year * 4 + @divFloor(month, 3),
         .week = @truncate(u8, qday / 7),
