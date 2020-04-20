@@ -17,7 +17,7 @@ pub fn currentTime() Time {
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
     const year = local.tm_year + 1900;
     const month = local.tm_mon;
-    var qday = @intCast(u16, month) / 3;
+    var qday = @intCast(u16, month) % 3 * 38;
     if (month == 2 or month == 11) {
         qday += 1;
     }
