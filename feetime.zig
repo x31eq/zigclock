@@ -22,7 +22,16 @@ pub fn currentTime() Time {
         qday += 1;
     }
     qday += @intCast(u16, local.tm_mday + 5 - local.tm_wday);
-    var tick = (local.tm_min * 4 + @divFloor(local.tm_sec, 15));
+    var tick = local.tm_min * 4;
+    var sec = @mod(local.tm_sec, 15);
+    if (local.tm_sec < 60) {
+        tick += @divFloor(local.tm_sec, 15);
+    }
+    else {
+        // Leap second!
+        tick += 3;
+        sec += 15;
+    }
     return Time {
         .quarter = year * 4 + @divFloor(month, 3),
         .week = @truncate(u8, qday / 7),
@@ -30,6 +39,6 @@ pub fn currentTime() Time {
                     + @boolToInt(local.tm_hour > 11),
         .hour = @intCast(u8, local.tm_hour) % 12,
         .tick = @truncate(u8, @intCast(u32, tick * 16) / 15),
-        .sec = @intCast(u8, local.tm_sec) % 15,
+        .sec = @intCast(u8, sec),
     };
 }
