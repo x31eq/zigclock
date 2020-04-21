@@ -1,4 +1,5 @@
 const std = @import("std");
+const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
 const Time = packed struct {
@@ -12,8 +13,10 @@ const Time = packed struct {
 
 pub fn currentTime() Time {
     var local: time.tm = undefined;
+    var ts: os.timespec = undefined;
 
-    var timestamp = std.time.timestamp();
+    os.clock_gettime(os.CLOCK_REALTIME, &ts) catch unreachable;
+    var timestamp = ts.tv_sec;
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
     const year = local.tm_year + 1900;
     const month = local.tm_mon;
