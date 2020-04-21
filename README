@@ -26,3 +26,8 @@ C libraries in Zig.
 
 It isn't finished yet.  We'll see how long it interests me
 and whether I remember to update this file.
+
+I used a makefile because although Zig has its own system
+that apparently makes them redundant, I don't know how to use it.
+I also hard-coded the path I happened to extract the binary to.
+You'll probably want to change this.
