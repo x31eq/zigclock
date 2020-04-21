@@ -1,0 +1,28 @@
+This is a Zig project to work with hex timestamps.
+I'm doing it mostly to learn Zig, which suits it fairly well.
+
+Here's the site for Zig: https://ziglang.org/
+
+Here's my old repository for shell scripts that work
+with the same timestamps:
+
+https://bitbucket.org/x31eq/binaryclock
+
+You might also find a Rust repository that I've been
+working on in parallel.
+
+My current opinion of Zig is that it's quite a good
+replacement for C but the implementation needs more polish
+and the standard library needs documentation.
+Maybe you found this after searching for help on formatting
+with the standard library, in which case, yes, you'll learn
+something about hex formatting here.
+I worked it out mostly from the source code.
+
+I call out to a standard C library to get the local time.
+(I don't know how standard it is -- at least it works in Linux.)
+This is a good example of how simple it is to work with
+C libraries in Zig.
+
+It isn't finished yet.  We'll see how long it interests me
+and whether I remember to update this file.
