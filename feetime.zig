@@ -1,4 +1,5 @@
 const std = @import("std");
+const fmt = std.fmt;
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
@@ -18,8 +19,12 @@ pub fn currentTime() Time {
     os.clock_gettime(os.CLOCK_REALTIME, &ts) catch unreachable;
     var timestamp = ts.tv_sec;
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
-    const year = local.tm_year + 1900;
-    const month = local.tm_mon;
+    return tmDecode(local);
+}
+
+fn tmDecode(muggle: time.tm) Time {
+    const year = muggle.tm_year + 1900;
+    const month = muggle.tm_mon;
     // Guess the first day of the month of the quarter by
     // counting days in previous months assuming 31 days per month.
     var qday = @intCast(u16, month) % 3 * 38;
@@ -28,18 +33,20 @@ pub fn currentTime() Time {
     if (month == 2 or month == 11) {
         qday -= 1;
     }
+    const wday = @intCast(i32,
+            weekday(year, @intCast(u8, month), muggle.tm_mday));
     // Now add extra days to account for months not starting on Sunday.
-    qday += @intCast(u16, local.tm_mday + 5 - local.tm_wday);
-    var sec = @intCast(u16, local.tm_sec);
+    qday += @intCast(u16, muggle.tm_mday + 5 - muggle.tm_wday);
+    var sec = @intCast(u16, muggle.tm_sec);
     var tick = sec / 15 - sec / 60;
     sec -= tick * 15;
-    tick += @intCast(u16, local.tm_min) * 4;
+    tick += @intCast(u16, muggle.tm_min) * 4;
     return Time {
         .quarter = @intCast(i24, year * 4 + @divFloor(month, 3)),
         .week = @truncate(u8, qday / 7),
-        .halfday = @intCast(u8, local.tm_wday * 2)
-                    + @boolToInt(local.tm_hour > 11),
-        .hour = @intCast(u8, local.tm_hour) % 12,
+        .halfday = @intCast(u8, muggle.tm_wday * 2)
+                    + @boolToInt(muggle.tm_hour > 11),
+        .hour = @intCast(u8, muggle.tm_hour) % 12,
         .tick = @truncate(u8, (tick * 16) / 15),
         .sec = @truncate(u8, sec),
     };
@@ -54,7 +61,7 @@ const MuggleTime = packed struct {
     sec: u8,
 };
 
-pub fn decode(feetime: Time) MuggleTime {
+pub fn decode(feetime: Time) time.tm {
     const year = @divFloor(feetime.quarter, 4);
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
                     + (feetime.week * 16 + feetime.halfday) / 0x55;
@@ -64,12 +71,13 @@ pub fn decode(feetime: Time) MuggleTime {
     if (month == 2 or month == 11) {
         qday -= 1;
     }
+    const wday = weekday(year, month, 1);
     // week = (qday + day + 5 - weekday) / 7    [1]
     // weekday = (weekday_1 + day - 1) % 7      [2]
     // qday as above
     // day = day of month (first day = 1) (we want to find this)
     // weekday = days since Sunday
-    // weekday_1 = days since Sunday for the first day of the month
+    // wday = days since Sunday for the first day of the month (as above)
     //
     // Rearrange [1]
     // week * 7 = qday + day + 5 - weekday
@@ -79,18 +87,23 @@ pub fn decode(feetime: Time) MuggleTime {
     //
     // Substitute in [2]
     // day = week * 7 + weekday - qday - 5
-    //       + (qday + day + 5 - (weekday_1 + day - 1)) % 7
-    // day = week * 7 + weekday - qday - 5 - (qday + 6 - weekday_1) % 7
+    //       + (qday + day + 5 - (wday + day - 1)) % 7
+    // day = week * 7 + weekday - qday - 5 - (qday + 6 - wday) % 7
     const day = feetime.week * 7 +% feetime.halfday / 2 -% qday -% 5
-            +% (6 + qday - weekday(year, month, 1)) % 7;
+            +% (6 + qday - wday) % 7;
     const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
-    return MuggleTime {
-        .year = year,
-        .month = month + 1,
-        .day = day,
-        .hour = feetime.hour + 12 * (feetime.halfday & 1),
-        .min = toc / 4,
-        .sec = (toc % 4) * 15 + feetime.sec,
+    return time.tm {
+        .tm_year = year - 1900,
+        .tm_mon = month,
+        .tm_mday = day,
+        .tm_wday = wday,
+        .tm_hour = feetime.hour + 12 * (feetime.halfday & 1),
+        .tm_min = toc / 4,
+        .tm_sec = (toc % 4) * 15 + feetime.sec,
+        .tm_yday = 0,
+        .tm_isdst = 0,
+        .tm_gmtoff = 0,
+        .tm_zone = 0,
     };
 }
 
@@ -111,4 +124,46 @@ fn weekday(year: i32, month: u8, day: i32) u8 {
     const wday = @divFloor(26 * m - 2, 10) + day + Y
                 + @divFloor(Y, 4) + @divFloor(cent, 4) + 5 * cent;
     return @intCast(u8, @mod(wday, 7));
+}
+
+/// Determine a time from command line arguments.
+/// This isn't very generic, but saves a lot of duplicated code.
+pub fn timeFromArgs() !Time {
+    if (std.os.argv.len < 2) {
+        return currentTime();
+    }
+    var muggle: time.tm = undefined;
+    const datetime = std.os.argv[1];
+    var year: i32 = 0;
+    var month: i32 = 0;
+    var day: i32 = 0;
+    var hour: i32 = 0;
+    var minute: i32 = 0;
+    var second: i32 = 0;
+
+    // YY-mm-dd
+    year = try fmt.parseInt(i32, datetime[0..4], 10);
+    month = try fmt.parseInt(i32, datetime[5..7], 10);
+    day = try fmt.parseInt(i32, datetime[8..10], 10);
+
+    if (std.os.argv.len > 2) {
+        const time_part = std.os.argv[2];
+        hour = try fmt.parseInt(i32, time_part[0..2], 10);
+        minute = try fmt.parseInt(i32, time_part[3..5], 10);
+        second = try fmt.parseInt(i32, time_part[6..8], 10);
+    }
+    muggle = time.tm {
+        .tm_year = year - 1900,
+        .tm_mon = month - 1,
+        .tm_mday = day,
+        .tm_hour = hour,
+        .tm_min = minute,
+        .tm_sec = second,
+        .tm_wday = @intCast(i32, weekday(year, @intCast(u8, month), day)),
+        .tm_yday = 0,
+        .tm_isdst = 0,
+        .tm_gmtoff = 0,
+        .tm_zone = 0,
+    };
+    return tmDecode(muggle);
 }
