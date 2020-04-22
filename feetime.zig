@@ -53,15 +53,6 @@ fn tmDecode(muggle: time.tm) Time {
     };
 }
 
-const MuggleTime = packed struct {
-    year: i32,
-    month: u8,
-    day: u8,
-    hour: u8,
-    min: u8,
-    sec: u8,
-};
-
 pub fn decode(feetime: Time) time.tm {
     const year = @divFloor(feetime.quarter, 4);
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
