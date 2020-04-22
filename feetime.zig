@@ -3,12 +3,12 @@ const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
 pub const Time = packed struct {
-    quarter: i24,
+    quarter: i28,
     week: u4,
     halfday: u4,
     hour: u4,
     tick: u8,
-    sec: u4 = 0,
+    sec: u4,
 };
 
 pub fn currentTime() Time {

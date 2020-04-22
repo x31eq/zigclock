@@ -1,23 +1,25 @@
 const std = @import("std");
 const feetime = @import("feetime.zig");
 
+const Stamp = packed struct {
+    week: i32,
+    tick: u16,
+    sec: u4 = 0,
+};
+
 pub fn main() !void {
     // Constant until I work out command line arguments
     const stamp = "f913.6b66";
-    var quarter = try std.fmt.parseInt(i24, stamp[0..3], 16);
-    if (quarter < 0xe00) {
-        quarter += 0x2000;
+    var week = try std.fmt.parseInt(i32, stamp[0..4], 16);
+    if (week < 0xe000) {
+        week += 0x20000;
     } else {
-        quarter += 0x1000;
+        week += 0x10000;
     }
+    var tick = try std.fmt.parseInt(u16, stamp[5..9], 16);
+    const packed_stamp = Stamp { .week = week, .tick = tick };
+    const instant = @bitCast(feetime.Time, packed_stamp);
 
-    const instant = feetime.Time {
-        .quarter = quarter,
-        .week = @truncate(u4, try std.fmt.charToDigit(stamp[3], 16)),
-        .halfday = @truncate(u4, try std.fmt.charToDigit(stamp[5], 16)),
-        .hour = @truncate(u4, try std.fmt.charToDigit(stamp[6], 16)),
-        .tick = try std.fmt.parseInt(u8, stamp[7..9], 16),
-    };
     const muggle = feetime.decode(instant);
     const stdout = try std.io.getStdOut();
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
