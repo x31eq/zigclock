@@ -1,6 +1,7 @@
 const std = @import("std");
+const fmt = std.fmt;
 const os = std.os;
-pub const time = @cImport(@cInclude("time.h"));
+const time = @cImport(@cInclude("time.h"));
 
 pub const Time = packed struct {
     quarter: i24,
@@ -21,7 +22,7 @@ pub fn currentTime() Time {
     return tmDecode(local);
 }
 
-pub fn tmDecode(muggle: time.tm) Time {
+fn tmDecode(muggle: time.tm) Time {
     const year = muggle.tm_year + 1900;
     const month = muggle.tm_mon;
     // Guess the first day of the month of the quarter by
@@ -32,11 +33,10 @@ pub fn tmDecode(muggle: time.tm) Time {
     if (month == 2 or month == 11) {
         qday -= 1;
     }
-    // A manually constructed time struct doesn't have tm_wday set
     const wday = @intCast(i32,
             weekday(year, @intCast(u8, month), muggle.tm_mday));
     // Now add extra days to account for months not starting on Sunday.
-    qday += @intCast(u16, muggle.tm_mday + 5 - wday);
+    qday += @intCast(u16, muggle.tm_mday + 5 - muggle.tm_wday);
     var sec = @intCast(u16, muggle.tm_sec);
     var tick = sec / 15 - sec / 60;
     sec -= tick * 15;
@@ -44,7 +44,7 @@ pub fn tmDecode(muggle: time.tm) Time {
     return Time {
         .quarter = @intCast(i24, year * 4 + @divFloor(month, 3)),
         .week = @truncate(u8, qday / 7),
-        .halfday = @intCast(u8, wday * 2)
+        .halfday = @intCast(u8, muggle.tm_wday * 2)
                     + @boolToInt(muggle.tm_hour > 11),
         .hour = @intCast(u8, muggle.tm_hour) % 12,
         .tick = @truncate(u8, (tick * 16) / 15),
@@ -124,4 +124,46 @@ fn weekday(year: i32, month: u8, day: i32) u8 {
     const wday = @divFloor(26 * m - 2, 10) + day + Y
                 + @divFloor(Y, 4) + @divFloor(cent, 4) + 5 * cent;
     return @intCast(u8, @mod(wday, 7));
+}
+
+/// Determine a time from command line arguments.
+/// This isn't very generic, but saves a lot of duplicated code.
+pub fn timeFromArgs() !Time {
+    if (std.os.argv.len < 2) {
+        return currentTime();
+    }
+    var muggle: time.tm = undefined;
+    const datetime = std.os.argv[1];
+    var year: i32 = 0;
+    var month: i32 = 0;
+    var day: i32 = 0;
+    var hour: i32 = 0;
+    var minute: i32 = 0;
+    var second: i32 = 0;
+
+    // YY-mm-dd
+    year = try fmt.parseInt(i32, datetime[0..4], 10);
+    month = try fmt.parseInt(i32, datetime[5..7], 10);
+    day = try fmt.parseInt(i32, datetime[8..10], 10);
+
+    if (std.os.argv.len > 2) {
+        const time_part = std.os.argv[2];
+        hour = try fmt.parseInt(i32, time_part[0..2], 10);
+        minute = try fmt.parseInt(i32, time_part[3..5], 10);
+        second = try fmt.parseInt(i32, time_part[6..8], 10);
+    }
+    muggle = time.tm {
+        .tm_year = year - 1900,
+        .tm_mon = month - 1,
+        .tm_mday = day,
+        .tm_hour = hour,
+        .tm_min = minute,
+        .tm_sec = second,
+        .tm_wday = @intCast(i32, weekday(year, @intCast(u8, month), day)),
+        .tm_yday = 0,
+        .tm_isdst = 0,
+        .tm_gmtoff = 0,
+        .tm_zone = 0,
+    };
+    return tmDecode(muggle);
 }
