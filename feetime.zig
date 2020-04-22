@@ -73,18 +73,16 @@ pub fn decode(feetime: Time) MuggleTime {
     //
     // Rearrange [1]
     // week * 7 = qday + day + 5 - weekday
-    //            + (qday + day + 5 - weekday) % 7
+    //            - (qday + day + 5 - weekday) % 7
     // day = week * 7 + weekday - qday - 5
-    //       - (qday + day + 5 - weekday) % 7
+    //       + (qday + day + 5 - weekday) % 7
     //
     // Substitute in [2]
     // day = week * 7 + weekday - qday - 5
-    //       - (qday + day + 5 - (weekday_1 + day - 1)) % 7
+    //       + (qday + day + 5 - (weekday_1 + day - 1)) % 7
     // day = week * 7 + weekday - qday - 5 - (qday + 6 - weekday_1) % 7
-    //
-    // Move subtractions to ensure unsigned safety
-    const day = feetime.week * 7 + feetime.halfday / 2
-            + (6 + qday - weekday(year, month, 1)) % 7 - qday - 5;
+    const day = feetime.week * 7 +% feetime.halfday / 2 -% qday -% 5
+            +% (6 + qday - weekday(year, month, 1)) % 7;
     const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
     return MuggleTime {
         .year = year,
