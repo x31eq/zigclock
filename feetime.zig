@@ -60,13 +60,31 @@ pub fn decode(feetime: Time) MuggleTime {
                     + (feetime.week * 16 + feetime.halfday) / 0x55;
     // Guess for first day of the month of the quarter.
     // Compare with code in the "to hex" calculation.
-    var qday = (month % 3) * 38 + 5;
+    var qday = (month % 3) * 38;
     if (month == 2 or month == 11) {
         qday -= 1;
     }
-    // This is difficult to understand but works
+    // week = (qday + day + 5 - weekday) / 7    [1]
+    // weekday = (weekday_1 + day - 1) % 7      [2]
+    // qday as above
+    // day = day of month (first day = 1) (we want to find this)
+    // weekday = days since Sunday
+    // weekday_1 = days since Sunday for the first day of the month
+    //
+    // Rearrange [1]
+    // week * 7 = qday + day + 5 - weekday
+    //            + (qday + day + 5 - weekday) % 7
+    // day = week * 7 + weekday - qday - 5
+    //       - (qday + day + 5 - weekday) % 7
+    //
+    // Substitute in [2]
+    // day = week * 7 + weekday - qday - 5
+    //       - (qday + day + 5 - (weekday_1 + day - 1)) % 7
+    // day = week * 7 + weekday - qday - 5 - (qday + 6 - weekday_1) % 7
+    //
+    // Move subtractions to ensure unsigned safety
     const day = feetime.week * 7 + feetime.halfday / 2
-            + (1 + qday - month_weekday(year, month)) % 7 - qday;
+            + (6 + qday - month_weekday(year, month)) % 7 - qday - 5;
     const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
     return MuggleTime {
         .year = year,
