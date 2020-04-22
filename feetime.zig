@@ -84,7 +84,7 @@ pub fn decode(feetime: Time) MuggleTime {
     //
     // Move subtractions to ensure unsigned safety
     const day = feetime.week * 7 + feetime.halfday / 2
-            + (6 + qday - month_weekday(year, month)) % 7 - qday - 5;
+            + (6 + qday - weekday(year, month, 1)) % 7 - qday - 5;
     const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
     return MuggleTime {
         .year = year,
@@ -96,9 +96,9 @@ pub fn decode(feetime: Time) MuggleTime {
     };
 }
 
-/// Weekday (Sunday is 0) of the first day of the month
-/// month is 0 for January
-fn month_weekday(year: i32, month: u8) u8 {
+/// Weekday (Sunday is 0) of a given day
+/// Where day starts at 1 and month is 0 for January
+fn weekday(year: i32, month: u8, day: i32) u8 {
     // Based on RFC 3339 Appendix B
     var Y = year;
 
@@ -110,7 +110,7 @@ fn month_weekday(year: i32, month: u8) u8 {
     const cent = @divFloor(Y, 100);
     Y = @mod(Y, 100);
 
-    const day = @divFloor(26 * m - 2, 10) + 1 + Y
+    const wday = @divFloor(26 * m - 2, 10) + day + Y
                 + @divFloor(Y, 4) + @divFloor(cent, 4) + 5 * cent;
-    return @intCast(u8, @mod(day, 7));
+    return @intCast(u8, @mod(wday, 7));
 }
