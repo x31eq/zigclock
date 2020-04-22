@@ -26,8 +26,13 @@ pub fn main() !void {
     const muggle = feetime.decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
     _ = try fmt.bufPrint(mugglebuf[0..],
-            "{}-{d:0>2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
-            muggle.year, muggle.month, muggle.day,
-            muggle.hour, muggle.min, muggle.sec);
+            "{}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
+            muggle.tm_year + 1900,
+            @intCast(u32, muggle.tm_mon + 1),
+            @intCast(u32, muggle.tm_mday),
+            @intCast(u32, muggle.tm_hour),
+            @intCast(u32, muggle.tm_min),
+            @intCast(u32, muggle.tm_sec),
+            );
     try stdout.write(mugglebuf);
 }
