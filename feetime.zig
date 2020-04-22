@@ -3,7 +3,7 @@ const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
 const Time = packed struct {
-    quarter: i32,
+    quarter: i24,
     week: u8,
     halfday: u8,
     hour: u8,
@@ -30,7 +30,7 @@ pub fn currentTime() Time {
     sec -= tick * 15;
     tick += @intCast(u16, local.tm_min * 4);
     return Time {
-        .quarter = year * 4 + @divFloor(month, 3),
+        .quarter = @intCast(i24, year * 4 + @divFloor(month, 3)),
         .week = @truncate(u8, qday / 7),
         .halfday = @intCast(u8, local.tm_wday * 2)
                     + @boolToInt(local.tm_hour > 11),
