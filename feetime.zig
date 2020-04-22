@@ -2,8 +2,7 @@ const std = @import("std");
 const fmt = std.fmt;
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
-
-extern fn strlen([*]const u8) usize;
+const strlen = @cImport(@cInclude("string.h")).strlen;
 
 pub const Time = packed struct {
     quarter: i24,
