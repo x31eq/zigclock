@@ -8,12 +8,14 @@ pub fn main() !void {
         try stdout.write("Supply the hex timestamp on the command line\n");
         return;
     }
+    const epoch = try fmt.parseInt(
+            i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
     var instant: feetime.Time = undefined;
     const stamp = std.os.argv[1];
     if (stamp[0] == ':') {
         // time with no date
         instant = feetime.Time {
-            .quarter = 1984 * 4,
+            .quarter = epoch * 4,
             .week = 0,
             .halfday = 0,
             .hour = try fmt.charToDigit(stamp[1], 16),
@@ -24,7 +26,7 @@ pub fn main() !void {
     else if (stamp[1] == ':') {
         // only the half-day
         instant = feetime.Time {
-            .quarter = 1984 * 4,
+            .quarter = epoch * 4,
             .week = 1,
             .halfday = try fmt.charToDigit(stamp[0], 16),
             .hour = try fmt.charToDigit(stamp[2], 16),
@@ -35,7 +37,7 @@ pub fn main() !void {
     else {
         var quarter = try fmt.parseInt(i24, stamp[0..2], 16);
         instant = feetime.Time {
-            .quarter = quarter + 0x1f00,
+            .quarter = quarter + epoch * 4,
             .week = try fmt.charToDigit(stamp[2], 16),
             .halfday = try fmt.charToDigit(stamp[3], 16),
             .hour = try fmt.charToDigit(stamp[5], 16),
