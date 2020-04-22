@@ -87,7 +87,7 @@ fee_test b402:0000 2029-01-01
 ) || exit 7
 
 fee_test :0000 00:00:00
-#fee_test 1:0000 12:00:00
+fee_test 1:0000 12:00:00
 fee_test :0001 00:00:01
 fee_test :000e 00:00:14
 fee_test :0010 00:00:15
@@ -99,9 +99,9 @@ fee_test :0400 00:15:00
 fee_test :0800 00:30:00
 fee_test :0c00 00:45:00
 fee_test :1000 01:00:00
-#fee_test 1:1000 13:00:00
+fee_test 1:1000 13:00:00
 fee_test :b000 11:00:00
-#fee_test 1:b000 23:00:00
+fee_test 1:b000 23:00:00
 
 fee_test :0110 00:04:00
 fee_test :0150 00:05:00

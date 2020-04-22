@@ -21,6 +21,17 @@ pub fn main() !void {
             .sec = try fmt.charToDigit(stamp[4], 16),
         };
     }
+    else if (stamp[1] == ':') {
+        // only the half-day
+        instant = feetime.Time {
+            .quarter = 1984 * 4,
+            .week = 1,
+            .halfday = try fmt.charToDigit(stamp[0], 16),
+            .hour = try fmt.charToDigit(stamp[2], 16),
+            .tick = try fmt.parseInt(u8, stamp[3..5], 16),
+            .sec = try fmt.charToDigit(stamp[5], 10),
+        };
+    }
     else {
         var quarter = try fmt.parseInt(i24, stamp[0..2], 16);
         instant = feetime.Time {
