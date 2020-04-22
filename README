@@ -12,8 +12,8 @@ You might also find a Rust repository that I've been
 working on in parallel.
 
 My current opinion of Zig is that it's quite a good
-replacement for C but the implementation needs more polish
-and the standard library needs documentation.
+replacement for C but the implementation could do with more polish
+and the standard library could do with documentation.
 Maybe you found this after searching for help on formatting
 with the standard library, in which case, yes, you'll learn
 something about hex formatting here.
