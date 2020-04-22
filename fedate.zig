@@ -13,9 +13,9 @@ pub fn main() !void {
 
     const instant = feetime.Time {
         .quarter = quarter,
-        .week = try std.fmt.charToDigit(stamp[3], 16),
-        .halfday = try std.fmt.charToDigit(stamp[5], 16),
-        .hour = try std.fmt.charToDigit(stamp[6], 16),
+        .week = @truncate(u4, try std.fmt.charToDigit(stamp[3], 16)),
+        .halfday = @truncate(u4, try std.fmt.charToDigit(stamp[5], 16)),
+        .hour = @truncate(u4, try std.fmt.charToDigit(stamp[6], 16)),
         .tick = try std.fmt.parseInt(u8, stamp[7..9], 16),
     };
     const muggle = feetime.decode(instant);

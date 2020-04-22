@@ -4,11 +4,11 @@ const time = @cImport(@cInclude("time.h"));
 
 pub const Time = packed struct {
     quarter: i24,
-    week: u8,
-    halfday: u8,
-    hour: u8,
+    week: u4,
+    halfday: u4,
+    hour: u4,
     tick: u8,
-    sec: u8 = 0,
+    sec: u4 = 0,
 };
 
 pub fn currentTime() Time {
@@ -36,12 +36,12 @@ pub fn currentTime() Time {
     tick += @intCast(u16, local.tm_min) * 4;
     return Time {
         .quarter = @intCast(i24, year * 4 + @divFloor(month, 3)),
-        .week = @truncate(u8, qday / 7),
-        .halfday = @intCast(u8, local.tm_wday * 2)
+        .week = @truncate(u4, qday / 7),
+        .halfday = @intCast(u4, local.tm_wday * 2)
                     + @boolToInt(local.tm_hour > 11),
-        .hour = @intCast(u8, local.tm_hour) % 12,
+        .hour = @intCast(u4, local.tm_hour) % 12,
         .tick = @truncate(u8, (tick * 16) / 15),
-        .sec = @truncate(u8, sec),
+        .sec = @truncate(u4, sec),
     };
 }
 
@@ -55,9 +55,17 @@ const MuggleTime = packed struct {
 };
 
 pub fn decode(feetime: Time) MuggleTime {
+    // Extract packed numbers to be less annoying
+    const quarter = @intCast(u16, feetime.quarter);
+    const week = @intCast(u8, feetime.week);
+    const halfday = @intCast(u8, feetime.halfday);
+    const hour = @intCast(u8, feetime.hour);
+    const tick = @intCast(u8, feetime.tick);
+    const sec = @intCast(u8, feetime.sec);
+
     const year = @divFloor(feetime.quarter, 4);
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
-                    + (feetime.week * 16 + feetime.halfday) / 0x55;
+                    + (week * 16 + halfday) / 0x55;
     // Guess for first day of the month of the quarter.
     // Compare with code in the "to hex" calculation.
     var qday = (month % 3) * 38;
@@ -81,16 +89,16 @@ pub fn decode(feetime: Time) MuggleTime {
     // day = week * 7 + weekday - qday - 5
     //       + (qday + day + 5 - (weekday_1 + day - 1)) % 7
     // day = week * 7 + weekday - qday - 5 - (qday + 6 - weekday_1) % 7
-    const day = feetime.week * 7 +% feetime.halfday / 2 -% qday -% 5
+    const day = feetime.week * 7 +% halfday / 2 -% qday -% 5
             +% (6 + qday - weekday(year, month, 1)) % 7;
-    const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
+    const toc = tick / 16 * 15 + tick % 16;
     return MuggleTime {
         .year = year,
         .month = month + 1,
         .day = day,
-        .hour = feetime.hour + 12 * (feetime.halfday & 1),
+        .hour = hour + 12 * (halfday & 1),
         .min = toc / 4,
-        .sec = (toc % 4) * 15 + feetime.sec,
+        .sec = (toc % 4) * 15 + sec,
     };
 }
 
