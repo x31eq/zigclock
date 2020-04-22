@@ -134,24 +134,33 @@ pub fn timeFromArgs() !Time {
     }
     var muggle: time.tm = undefined;
     const datetime = std.os.argv[1];
-    var year: i32 = 0;
+    var year: i32 = 84;
     var month: i32 = 0;
     var day: i32 = 0;
     var hour: i32 = 0;
     var minute: i32 = 0;
     var second: i32 = 0;
 
-    // YY-mm-dd
-    year = try fmt.parseInt(i32, datetime[0..4], 10);
-    month = try fmt.parseInt(i32, datetime[5..7], 10);
-    day = try fmt.parseInt(i32, datetime[8..10], 10);
-
-    if (std.os.argv.len > 2) {
-        const time_part = std.os.argv[2];
-        hour = try fmt.parseInt(i32, time_part[0..2], 10);
-        minute = try fmt.parseInt(i32, time_part[3..5], 10);
-        second = try fmt.parseInt(i32, time_part[6..8], 10);
+    if (datetime[2] == ':') {
+        // HH:MM:SS
+        hour = try fmt.parseInt(i32, datetime[0..2], 10);
+        minute = try fmt.parseInt(i32, datetime[3..5], 10);
+        second = try fmt.parseInt(i32, datetime[6..8], 10);
     }
+    else {
+        // YY-mm-dd
+        year = try fmt.parseInt(i32, datetime[0..4], 10);
+        month = try fmt.parseInt(i32, datetime[5..7], 10);
+        day = try fmt.parseInt(i32, datetime[8..10], 10);
+
+        if (std.os.argv.len > 2) {
+            const time_part = std.os.argv[2];
+            hour = try fmt.parseInt(i32, time_part[0..2], 10);
+            minute = try fmt.parseInt(i32, time_part[3..5], 10);
+            second = try fmt.parseInt(i32, time_part[6..8], 10);
+        }
+    }
+
     muggle = time.tm {
         .tm_year = year - 1900,
         .tm_mon = month - 1,
