@@ -8,7 +8,7 @@ pub const Time = packed struct {
     halfday: u8,
     hour: u8,
     tick: u8,
-    sec: u8,
+    sec: u8 = 0,
 };
 
 pub fn currentTime() Time {

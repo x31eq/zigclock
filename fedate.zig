@@ -13,11 +13,10 @@ pub fn main() !void {
 
     const instant = feetime.Time {
         .quarter = quarter,
-        .week = try std.fmt.parseInt(u8, stamp[3..4], 16),
-        .halfday = try std.fmt.parseInt(u8, stamp[5..6], 16),
-        .hour = try std.fmt.parseInt(u8, stamp[6..7], 16),
+        .week = try std.fmt.charToDigit(stamp[3], 16),
+        .halfday = try std.fmt.charToDigit(stamp[5], 16),
+        .hour = try std.fmt.charToDigit(stamp[6], 16),
         .tick = try std.fmt.parseInt(u8, stamp[7..9], 16),
-        .sec = 0,
     };
     const muggle = feetime.decode(instant);
     const stdout = try std.io.getStdOut();
