@@ -164,7 +164,7 @@ pub fn timeFromArgs() !Time {
             // HH:MM:SS further back
             hour = try fmt.parseInt(i32, datetime[11..13], 10);
             minute = try fmt.parseInt(i32, datetime[14..16], 10);
-            second = try fmt.parseInt(i32, datetime[16..19], 10);
+            second = try fmt.parseInt(i32, datetime[17..19], 10);
         }
     }
 
