@@ -3,6 +3,8 @@ const fmt = std.fmt;
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
+extern fn strlen([*]const u8) usize;
+
 pub const Time = packed struct {
     quarter: i24,
     week: u8,
@@ -134,6 +136,16 @@ pub fn timeFromArgs() !Time {
     }
     var muggle: time.tm = undefined;
     const datetime = std.os.argv[1];
+
+    if (datetime[0] == '@') {
+        // POSIX timestamp (in decimal)
+        const timeslice = datetime[1..strlen(datetime)];
+        const timestamp = try fmt.parseInt(i64, timeslice, 10);
+        var local: time.tm = undefined;
+        _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
+        return tmDecode(local);
+    }
+
     var year: i32 = 0;
     var month: i32 = 1;
     var day: i32 = 0;
