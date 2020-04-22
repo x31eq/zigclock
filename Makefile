@@ -5,7 +5,7 @@ ZIG="../zig-linux-x86_64-0.5.0/zig"
 ZIGARGS=-lc build-exe --release-small --single-threaded --strip
 
 festamp: festamp.zig feetime.zig
-	${ZIG}  festamp.zig
+	${ZIG} ${ZIGARGS} festamp.zig
 
 feestamp: feestamp.zig feetime.zig
 	${ZIG} ${ZIGARGS} feestamp.zig

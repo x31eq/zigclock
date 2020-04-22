@@ -18,8 +18,12 @@ pub fn currentTime() Time {
     os.clock_gettime(os.CLOCK_REALTIME, &ts) catch unreachable;
     var timestamp = ts.tv_sec;
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
-    const year = local.tm_year + 1900;
-    const month = local.tm_mon;
+    return decode_tm(local);
+}
+
+pub fn decode_tm(muggle: time.tm) Time {
+    const year = muggle.tm_year + 1900;
+    const month = muggle.tm_mon;
     // Guess the first day of the month of the quarter by
     // counting days in previous months assuming 31 days per month.
     var qday = @intCast(u16, month) % 3 * 38;
@@ -29,17 +33,17 @@ pub fn currentTime() Time {
         qday -= 1;
     }
     // Now add extra days to account for months not starting on Sunday.
-    qday += @intCast(u16, local.tm_mday + 5 - local.tm_wday);
-    var sec = @intCast(u16, local.tm_sec);
+    qday += @intCast(u16, muggle.tm_mday + 5 - muggle.tm_wday);
+    var sec = @intCast(u16, muggle.tm_sec);
     var tick = sec / 15 - sec / 60;
     sec -= tick * 15;
-    tick += @intCast(u16, local.tm_min) * 4;
+    tick += @intCast(u16, muggle.tm_min) * 4;
     return Time {
         .quarter = @intCast(i24, year * 4 + @divFloor(month, 3)),
         .week = @truncate(u8, qday / 7),
-        .halfday = @intCast(u8, local.tm_wday * 2)
-                    + @boolToInt(local.tm_hour > 11),
-        .hour = @intCast(u8, local.tm_hour) % 12,
+        .halfday = @intCast(u8, muggle.tm_wday * 2)
+                    + @boolToInt(muggle.tm_hour > 11),
+        .hour = @intCast(u8, muggle.tm_hour) % 12,
         .tick = @truncate(u8, (tick * 16) / 15),
         .sec = @truncate(u8, sec),
     };
