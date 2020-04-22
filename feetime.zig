@@ -2,7 +2,7 @@ const std = @import("std");
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
-const Time = packed struct {
+pub const Time = packed struct {
     quarter: i24,
     week: u8,
     halfday: u8,
