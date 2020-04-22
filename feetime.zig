@@ -20,10 +20,15 @@ pub fn currentTime() Time {
     _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
     const year = local.tm_year + 1900;
     const month = local.tm_mon;
+    // Guess the first day of the month of the quarter by
+    // counting days in previous months assuming 31 days per month.
     var qday = @intCast(u16, month) % 3 * 38;
+    // Correct for February and November not having 31 days.
+    // This is good enough to keep months distinct.
     if (month == 2 or month == 11) {
         qday -= 1;
     }
+    // Now add extra days to account for months not starting on Sunday.
     qday += @intCast(u16, local.tm_mday + 5 - local.tm_wday);
     var sec = @intCast(u16, local.tm_sec);
     var tick = sec / 15 - sec / 60;
@@ -53,12 +58,15 @@ pub fn decode(feetime: Time) MuggleTime {
     const year = @divFloor(feetime.quarter, 4);
     const month = (@intCast(u8, feetime.quarter) % 4) * 3
                     + (feetime.week * 16 + feetime.halfday) / 0x55;
-    var k = (month % 3) * 38 + 5;
+    // Guess for first day of the month of the quarter.
+    // Compare with code in the "to hex" calculation.
+    var qday = (month % 3) * 38 + 5;
     if (month == 2 or month == 11) {
-        k -= 1;
+        qday -= 1;
     }
+    // This is difficult to understand but works
     const day = feetime.week * 7 + feetime.halfday / 2
-            + (1 + k - month_weekday(year, month)) % 7 - k;
+            + (1 + qday - month_weekday(year, month)) % 7 - qday;
     const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
     return MuggleTime {
         .year = year,
