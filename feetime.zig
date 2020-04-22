@@ -134,8 +134,8 @@ pub fn timeFromArgs() !Time {
     }
     var muggle: time.tm = undefined;
     const datetime = std.os.argv[1];
-    var year: i32 = 84;
-    var month: i32 = 0;
+    var year: i32 = 0;
+    var month: i32 = 1;
     var day: i32 = 0;
     var hour: i32 = 0;
     var minute: i32 = 0;
@@ -154,10 +154,17 @@ pub fn timeFromArgs() !Time {
         day = try fmt.parseInt(i32, datetime[8..10], 10);
 
         if (std.os.argv.len > 2) {
+            // HH:MM:SS
             const time_part = std.os.argv[2];
             hour = try fmt.parseInt(i32, time_part[0..2], 10);
             minute = try fmt.parseInt(i32, time_part[3..5], 10);
             second = try fmt.parseInt(i32, time_part[6..8], 10);
+        }
+        else if (datetime[10] == ' ') {
+            // HH:MM:SS further back
+            hour = try fmt.parseInt(i32, datetime[11..13], 10);
+            minute = try fmt.parseInt(i32, datetime[14..16], 10);
+            second = try fmt.parseInt(i32, datetime[16..19], 10);
         }
     }
 
