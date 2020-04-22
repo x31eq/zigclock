@@ -1,0 +1,50 @@
+#!/bin/ksh
+# Script to check that leap seconds behave correctly
+# with the hex timestamps
+
+# negative timestamp of 1900-01-01 + 10 seconds
+NTP_EPOCH=2208988810
+
+function fail
+{
+    retcode=$1
+    shift
+    [[ -z "$*" ]] || echo $* >&2
+    exit $retcode
+}
+
+# 32-bit safety for mksh -- should avoid year 2038 bugs
+# From 2106, use a shell with 64-bit integers
+((1<<31 < 1)) && s32='#' || s32=''
+
+grep -v '^#' /usr/share/zoneinfo/leap-seconds.list |
+while read stamp offset comment
+do
+    posixstamp=$(($s32 stamp + offset - NTP_EPOCH))
+    export HEXEPOCH=$(($(date +%Y -d @$posixstamp)/64*64))
+    find /usr/share/zoneinfo/right/ -type f | while read zone_file
+    do
+        export TZ=${zone_file#/usr/share/zoneinfo/}
+
+        before=$(./feestamp @$(($s32 posixstamp - 2)))
+        leap=$(./feestamp @$(($s32 posixstamp - 1)))
+        after=$(./feestamp @$posixstamp)
+        [[ $before < $leap ]] || fail 7 $before not before $after in $TZ
+        # This might break if a leap second is scheduled for 2048
+        # or a time zone change coincides with a leap second
+        # but is likely to work for the near future
+        [[ $leap < $after ]] || fail 8 $leap not before $after in $TZ
+        reverse_leap=$(./feedate $leap)
+        [[ $(date +%s -d "$reverse_leap") = $(($s32 posixstamp - 1)) ]] ||
+            fail 9 $after is not $posixstamp - 1 in $TZ
+
+        # The first entry isn't a leap second
+        if [[ $offset != 10 ]]
+        then
+            [[ $leap = *f ]] || fail 10 $leap is a bad leap second in $TZ
+            [[ $TZ = */Kiritimati ]] ||
+            # This isn't necessarily true so isn't a fail case
+            [[ $leap = *ef ]] || echo $comment $TZ $posixstamp $leap
+        fi
+    done || exit $?
+done
