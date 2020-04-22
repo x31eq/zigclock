@@ -1,0 +1,83 @@
+#!/bin/zsh
+
+epoch=${HEXEPOCH-1984}
+
+fail()
+{
+    echo $* >&2
+    exit 1
+}
+
+test_unix_stamp()
+{
+    [[ $(date +%s -d "$(./feedate $(./feestamp @$1))") == $1 ]] ||
+        fail failed $1
+}
+
+test_correct_quarter()
+(
+    read year month weekday < <(date +'%Y 10#%m %w' -d @$1)
+    true_quarter=$(((year*4 + (month-1)/3) & 0xff))
+    stamp=$(./feestamp @$1)
+    ((true_quarter == 0x$stamp[1,2])) ||
+        fail Bad quarter $stamp $true_quarter
+)
+
+# Test every time over a day
+test_year=$((epoch + (RANDOM & 0x3f)))
+test_month=$((RANDOM % 12 + 1))
+first_time=$(date +%s -d $test_year-$test_month-01)
+middle_time=$(date +%s -d "$test_year-$test_month-01 12:00")
+last_time=$(date +%s -d $test_year-$test_month-02)
+for ((t=first_time; t<middle_time; t++))
+do
+    test_unix_stamp $t
+    ((t % 3600)) || ./feestamp @$t
+done &
+morning_pid=$!
+for ((t=middle_time; t<last_time; t++))
+do
+    test_unix_stamp $t
+    ((t % 3600)) || ./feestamp @$t
+done &
+afternoon_pid=$!
+
+test_all_year()
+{
+    ./feestamp $1-01-01
+    for ((d=0; d<365; d++))
+    do
+        unix_stamp=$(date +%s -d "$1-01-01 + $d days")
+        test_unix_stamp $unix_stamp
+        test_correct_quarter $unix_stamp || exit 2
+        today=0x$(./feestamp @$unix_stamp | sed s/://)
+        ((yesterday < today)) || fail Out of sequence $yesterday $today
+        month=$(date +%m -d @$unix_stamp)
+        if ((month != yestermonth))
+        then
+            [[ ${yesterday:4:1} == ${today:4:1} ]] &&
+                fail Month changes without week changing $yesterday $today
+            yestermonth=$month
+        fi
+        yesterday=$today
+    done
+    # New Year's Eve would have been missed in a leap year
+    unix_stamp=$(date +%s -d $1-12-31)
+    test_unix_stamp $unix_stamp
+    test_correct_quarter $unix_stamp || exit 2
+}
+
+# Test every date over an epoch
+yesterday=-99999
+yestermonth=0
+for ((y=epoch; y<(epoch + 32); y++))
+do
+    test_all_year $y
+done&
+early_epoch_pid=$!
+for ((y=(epoch + 32); y<(epoch + 64); y++))
+do
+    test_all_year $y
+done
+
+wait $early_epoch_pid && wait $morning_pid && wait $afternoon_pid
