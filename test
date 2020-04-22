@@ -1,0 +1,123 @@
+#!/bin/sh
+
+fee_test()
+{
+    local expected=$1
+    shift
+    if [ "${expected#:}" = "$expected" ] && [ "${expected#?:}" = "$expected" ]
+    then
+        if [ "$(./feestamp "$*")" != "$expected" ]
+        then
+            echo "./feestamp $* doesn't give $expected" >&2
+            exit 1
+        fi
+        if [ ${1%%-*} -ge 1984 ] && [ ${1%%-*} -lt 2048 ]
+        then
+            if [ "$(date +'%F %T' -d "$*")" != "$( ./feedate $expected)" ]
+            then
+                echo "./feedate $expected doesn't give $*" >&2
+                exit 7
+            fi
+        fi
+        # HEXEPOCH isn't supported yet
+        if false && [ ${1%%-*} -ge 1920 ] && [ ${1%%-*} -lt 1984 ]
+        then
+            decoded=$(HEXEPOCH=1920  ./feedate $expected)
+            if [ "$(date +'%F %T' -d "$*")" != "$decoded" ]
+            then
+                echo "./feedate $expected doesn't give $*" >&2
+                exit 7
+            fi
+        fi
+    else
+        # Time part only
+        local measured=$( ./feestamp "$*")
+        if [ "${measured#*:}" != "${expected#*:}" ]
+        then
+            echo "./feestamp $* doesn't end with :${expected#*:}" >&2
+            exit 1
+        fi
+        measured=$( ./feedate $expected | cut -d ' ' -f 2)
+        if [ "$measured" != "$*" ]
+        then
+            echo "./feedate $expected doesn't give $*" >&2
+            exit 9
+        fi
+    fi
+}
+
+# Pretend the internal clock is in atomic time
+# so that leap seconds are expressible
+export TZ=right/UTC
+
+fee_test 0008:0000 1920-01-01
+fee_test d3ec:8000 1972-12-30 08:00:00
+fee_test d3f1:b800 1972-12-31 23:30:00
+fee_test d3f1:bfef 1972-12-31 23:59:60
+fee_test d402:0000 1973-01-01 00:00:00
+fee_test 0000:0000 1984-01-01
+fee_test 0303:0303 1984-10-01 12:11:18
+fee_test 0303:3030 1984-10-01 15:00:45
+fee_test 03ec:0000 1984-12-29
+fee_test 03f0:0000 1984-12-30
+fee_test 03f2:0000 1984-12-31
+fee_test 0404:0000 1985-01-01
+fee_test 2810:0000 1994-01-02
+fee_test 400c:0000 2000-01-01
+fee_test 43ec:0000 2000-12-30
+fee_test 43f0:0000 2000-12-31
+fee_test 4402:0000 2001-01-01
+fee_test 7777:7777 2013-11-13 19:28:07
+fee_test 8167:094b 2016-05-04 12:34:56
+fee_test 816a:0000 2016-05-06 00:00:00
+fee_test 816b:0c0d 2016-05-06 12:45:13
+fee_test 816b:bfee 2016-05-06 23:59:59
+fee_test 83fd:bfef 2016-12-31 23:59:60
+fee_test 8765:4321 2017-11-07 16:11:46
+fee_test 8888:8888 2018-02-22 08:32:08
+fee_test b00c:0000 2028-01-01
+fee_test b3ec:0000 2028-12-30
+fee_test b3f0:0000 2028-12-31
+fee_test b402:0000 2029-01-01
+(
+    export TZ=right/Asia/Kolkata
+    fee_test d402:57ee 1973-01-01 05:29:59
+    fee_test d402:57ef 1973-01-01 05:29:60
+    fee_test d402:5800 1973-01-01 05:30:00
+) || exit 7
+
+fee_test :0000 00:00:00
+#fee_test 1:0000 12:00:00
+fee_test :0001 00:00:01
+fee_test :000e 00:00:14
+fee_test :0010 00:00:15
+fee_test :0011 00:00:16
+fee_test :0040 00:01:00
+fee_test :0080 00:02:00
+fee_test :00c0 00:03:00
+fee_test :0400 00:15:00
+fee_test :0800 00:30:00
+fee_test :0c00 00:45:00
+fee_test :1000 01:00:00
+#fee_test 1:1000 13:00:00
+fee_test :b000 11:00:00
+#fee_test 1:b000 23:00:00
+
+fee_test :0110 00:04:00
+fee_test :0150 00:05:00
+fee_test :03ee 00:14:59
+fee_test :0550 00:20:00
+fee_test :0aa0 00:40:00
+fee_test :0fee 00:59:59
+
+[ -n "$( ./feestamp)" ] ||
+{
+    echo "Current time failed" >&2
+    exit 2
+}
+
+if [ "$(./feedate 8bdd:6fef)" != "2018-12-22 18:59:60" ]
+then
+    echo "Standalone feedate test failed" >&2
+    exit 8
+fi
