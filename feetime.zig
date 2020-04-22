@@ -175,7 +175,7 @@ pub fn timeFromArgs() !Time {
         .tm_hour = hour,
         .tm_min = minute,
         .tm_sec = second,
-        .tm_wday = @intCast(i32, weekday(year, @intCast(u8, month), day)),
+        .tm_wday = @intCast(i32, weekday(year, @intCast(u8, month - 1), day)),
         .tm_yday = 0,
         .tm_isdst = 0,
         .tm_gmtoff = 0,
