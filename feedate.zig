@@ -8,19 +8,15 @@ pub fn main() !void {
         return;
     }
     const stamp = std.os.argv[1];
-    var quarter = try std.fmt.parseInt(i24, stamp[0..3], 16);
-    if (quarter < 0xe00) {
-        quarter += 0x2000;
-    } else {
-        quarter += 0x1000;
-    }
+    var quarter = try std.fmt.parseInt(i24, stamp[0..2], 16);
 
     const instant = feetime.Time {
-        .quarter = quarter,
-        .week = try std.fmt.charToDigit(stamp[3], 16),
-        .halfday = try std.fmt.charToDigit(stamp[5], 16),
-        .hour = try std.fmt.charToDigit(stamp[6], 16),
-        .tick = try std.fmt.parseInt(u8, stamp[7..9], 16),
+        .quarter = quarter + 0x1f00,
+        .week = try std.fmt.charToDigit(stamp[2], 16),
+        .halfday = try std.fmt.charToDigit(stamp[3], 16),
+        .hour = try std.fmt.charToDigit(stamp[5], 16),
+        .tick = try std.fmt.parseInt(u8, stamp[6..8], 16),
+        .sec = try std.fmt.charToDigit(stamp[8], 16),
     };
     const muggle = feetime.decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
