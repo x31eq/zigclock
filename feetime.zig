@@ -171,14 +171,14 @@ pub fn timeFromArgs() !Time {
     return tmDecode(muggle);
 }
 
-// Turn a YYYY-mm-dd string into years, months, and days
+/// Turn a YYYY-mm-dd string into years, months, and days
 fn parseDate(date_part: []u8, muggle: *time.struct_tm) !void {
     muggle.tm_year = (try fmt.parseInt(i32, date_part[0..4], 10)) - 1900;
     muggle.tm_mon = (try fmt.parseInt(i32, date_part[5..7], 10)) - 1;
     muggle.tm_mday = try fmt.parseInt(i32, date_part[8..], 10);
 }
 
-/// Turn a HH:MM:SS string into hours minutes and seconds
+/// Turn a HH:MM:SS string into hours, minutes and seconds
 fn parseTime(time_part: []u8, muggle: *time.struct_tm) !void {
     muggle.tm_hour = try fmt.parseInt(i32, time_part[0..2], 10);
     muggle.tm_min = try fmt.parseInt(i32, time_part[3..5], 10);
