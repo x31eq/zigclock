@@ -98,6 +98,22 @@ pub fn decode(feetime: Time) time.tm {
     };
 }
 
+/// Format the timestamp as ISO 8601 but with a space instead of a T
+pub fn isoFormat(instant: Time) ![20]u8 {
+    const muggle = decode(instant);
+    var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
+    _ = try fmt.bufPrint(mugglebuf[0..],
+            "{}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
+            muggle.tm_year + 1900,
+            @intCast(u32, muggle.tm_mon + 1),
+            @intCast(u32, muggle.tm_mday),
+            @intCast(u32, muggle.tm_hour),
+            @intCast(u32, muggle.tm_min),
+            @intCast(u32, muggle.tm_sec),
+            );
+    return mugglebuf;
+}
+
 /// Weekday (Sunday is 0) of a given day
 /// Where day starts at 1 and month is 0 for January
 fn weekday(year: i32, month: i32, day: i32) u8 {
