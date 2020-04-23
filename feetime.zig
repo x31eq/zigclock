@@ -127,15 +127,6 @@ pub fn timeFromArgs() !Time {
     var muggle: time.tm = undefined;
     const datetime = std.os.argv[1];
 
-    if (datetime[0] == '@') {
-        // POSIX timestamp (in decimal)
-        const timeslice = datetime[1..strlen(datetime)];
-        const timestamp = try fmt.parseInt(i64, timeslice, 10);
-        var local: time.tm = undefined;
-        _ = time.localtime_r(&@intCast(c_long, timestamp), &local);
-        return tmDecode(local);
-    }
-
     muggle = time.tm {
         .tm_year = 84,
         .tm_mon = 0,
@@ -149,6 +140,14 @@ pub fn timeFromArgs() !Time {
         .tm_gmtoff = 0,
         .tm_zone = 0,
     };
+
+    if (datetime[0] == '@') {
+        // POSIX timestamp (in decimal)
+        const timeslice = datetime[1..strlen(datetime)];
+        const timestamp = try fmt.parseInt(i64, timeslice, 10);
+        _ = time.localtime_r(&@intCast(c_long, timestamp), &muggle);
+        return tmDecode(muggle);
+    }
 
     if (datetime[2] == ':') {
         // HH:MM:SS
@@ -164,19 +163,21 @@ pub fn timeFromArgs() !Time {
 
         if (std.os.argv.len > 2) {
             // HH:MM:SS
-            const time_part = std.os.argv[2];
-            muggle.tm_hour = try fmt.parseInt(i32, time_part[0..2], 10);
-            muggle.tm_min = try fmt.parseInt(i32, time_part[3..5], 10);
-            muggle.tm_sec = try fmt.parseInt(i32, time_part[6..8], 10);
+            try parseTime(std.os.argv[2][0..8], &muggle);
         }
         else if (datetime[10] == ' ') {
             // HH:MM:SS further back
-            muggle.tm_hour = try fmt.parseInt(i32, datetime[11..13], 10);
-            muggle.tm_min = try fmt.parseInt(i32, datetime[14..16], 10);
-            muggle.tm_sec = try fmt.parseInt(i32, datetime[17..19], 10);
+            try parseTime(datetime[11..19], &muggle);
         }
     }
     const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
     muggle.tm_wday = @intCast(i32, wday);
     return tmDecode(muggle);
+}
+
+/// Turn a HH:MM:SS string into hours minutes and seconds
+fn parseTime(time_part: []u8, muggle: *time.struct_tm) !void {
+    muggle.tm_hour = try fmt.parseInt(i32, time_part[0..2], 10);
+    muggle.tm_min = try fmt.parseInt(i32, time_part[3..5], 10);
+    muggle.tm_sec = try fmt.parseInt(i32, time_part[6..8], 10);
 }
