@@ -10,23 +10,21 @@ pub fn main() !void {
     }
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
-    var stamp = "f000.00000";
-    const offset = 4 - std.mem.indexOfScalar(u8, stamp_in, '.').?;
+    var stamp = "1f000.00000";
+    const offset = 5 - std.mem.indexOfScalar(u8, stamp_in, '.').?;
     std.mem.copy(u8, stamp[offset..], stamp_in);
-    var quarter = try fmt.parseInt(i24, stamp[0..3], 16);
-    if (quarter < 0xe00) {
-        quarter += 0x2000;
-    } else {
+    var quarter = try fmt.parseInt(i24, stamp[0..4], 16);
+    if (offset > 0 and quarter < 0x1e00) {
         quarter += 0x1000;
     }
 
     const instant = feetime.Time {
         .quarter = quarter,
-        .week = try fmt.charToDigit(stamp[3], 16),
-        .halfday = try fmt.charToDigit(stamp[5], 16),
-        .hour = try fmt.charToDigit(stamp[6], 16),
-        .tick = try fmt.parseInt(u8, stamp[7..9], 16),
-        .sec = try fmt.charToDigit(stamp[9], 16),
+        .week = try fmt.charToDigit(stamp[4], 16),
+        .halfday = try fmt.charToDigit(stamp[6], 16),
+        .hour = try fmt.charToDigit(stamp[7], 16),
+        .tick = try fmt.parseInt(u8, stamp[8..10], 16),
+        .sec = try fmt.charToDigit(stamp[10], 17),
     };
     const muggle = feetime.decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
