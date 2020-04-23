@@ -8,7 +8,7 @@ pub fn main() !void {
         return;
     }
     var stamp = "00000.00000";
-    try feetime.setStampFromArgs(stamp[0..], '.');
+    try feetime.setStampFromArgs(stamp[0..]);
     const instant = try feetime.timeFromHex(stamp);
     try stdout.write(try feetime.isoFormat(instant));
 }

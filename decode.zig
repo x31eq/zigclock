@@ -1,6 +1,5 @@
 const std = @import("std");
 const feetime = @import("feetime.zig");
-const fmt = std.fmt;
 
 pub fn main() !void {
     const stdout = try std.io.getStdOut();
@@ -13,11 +12,8 @@ pub fn main() !void {
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     if (std.mem.indexOfScalar(u8, stamp_in, ':')) |_| {
         stamp = "000000:0000";
-        try feetime.setStampFromArgs(stamp[0..], ':');
     }
-    else {
-        try feetime.setStampFromArgs(stamp[0..], '.');
-    }
+    try feetime.setStampFromArgs(stamp[0..]);
     const instant = try feetime.timeFromHex(stamp);
     try stdout.write(try feetime.isoFormat(instant));
 }

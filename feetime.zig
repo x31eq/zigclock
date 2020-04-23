@@ -156,11 +156,11 @@ fn weekday(year: i32, month: i32, day: i32) u8 {
 
 /// Set the string to filled out command line input.
 /// Not very generic but saves code duplication.
-pub fn setStampFromArgs(stamp: []u8, divider: u8) !void {
+pub fn setStampFromArgs(stamp: []u8) !void {
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
-    const divider_pos = std.mem.indexOfScalar(u8, stamp_in, divider);
-    var offset = std.mem.indexOfScalar(u8, stamp, divider).? + 1;
+    const divider_pos = std.mem.indexOfAny(u8, stamp_in, ".:");
+    var offset = std.mem.indexOfAny(u8, stamp, ".:").? + 1;
     if (divider_pos) |pos| {
         offset -= pos + 1;
     }
