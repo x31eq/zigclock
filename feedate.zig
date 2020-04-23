@@ -14,9 +14,8 @@ pub fn main() !void {
     const stamp_arg = std.os.argv[1];
     const arglen = string.strlen(stamp_arg);
     var stamp = "0000:0000";
-    var offset: usize = 0;
     const divider: *u8 = string.strchr(stamp_arg, ':');
-    offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
+    var offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
     for (stamp_arg[0..arglen]) |c| {
         stamp[offset] = c;
         offset += 1;

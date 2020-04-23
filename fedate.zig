@@ -1,6 +1,7 @@
 const std = @import("std");
 const feetime = @import("feetime.zig");
 const fmt = std.fmt;
+const string = @cImport(@cInclude("string.h"));
 
 pub fn main() !void {
     const stdout = try std.io.getStdOut();
@@ -8,7 +9,15 @@ pub fn main() !void {
         try stdout.write("Supply the hex timestamp on the command line\n");
         return;
     }
-    const stamp = std.os.argv[1];
+    const stamp_arg = std.os.argv[1];
+    const arglen = string.strlen(stamp_arg);
+    var stamp = "f000.00000";
+    const divider: *u8 = string.strchr(stamp_arg, '.');
+    var offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
+    for (stamp_arg[0..arglen]) |c| {
+        stamp[offset] = c;
+        offset += 1;
+    }
     var quarter = try fmt.parseInt(i24, stamp[0..3], 16);
     if (quarter < 0xe00) {
         quarter += 0x2000;
@@ -22,6 +31,7 @@ pub fn main() !void {
         .halfday = try fmt.charToDigit(stamp[5], 16),
         .hour = try fmt.charToDigit(stamp[6], 16),
         .tick = try fmt.parseInt(u8, stamp[7..9], 16),
+        .sec = try fmt.charToDigit(stamp[9], 16),
     };
     const muggle = feetime.decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
