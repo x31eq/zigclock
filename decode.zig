@@ -20,13 +20,6 @@ pub fn main() !void {
         try feetime.setStampFromArgs(stamp[0..], '.');
         std.mem.copy(u8, stamp[5..], stamp[6..]);
     }
-    const instant = feetime.Time {
-        .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
-        .week = try fmt.charToDigit(stamp[4], 16),
-        .halfday = try fmt.charToDigit(stamp[6], 16),
-        .hour = try fmt.charToDigit(stamp[6], 16),
-        .tick = try fmt.parseInt(u8, stamp[7..9], 16),
-        .sec = try fmt.charToDigit(stamp[9], 16),
-    };
+    const instant = try feetime.timeFromHex(stamp);
     try stdout.write(try feetime.isoFormat(instant));
 }

@@ -22,6 +22,18 @@ pub fn currentTime() Time {
     return tmDecode(local);
 }
 
+/// Decode a 10-digit hex string without divider
+pub fn timeFromHex(stamp: [11]u8) !Time {
+    return Time {
+        .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
+        .week = try fmt.charToDigit(stamp[4], 16),
+        .halfday = try fmt.charToDigit(stamp[5], 16),
+        .hour = try fmt.charToDigit(stamp[6], 16),
+        .tick = try fmt.parseInt(u8, stamp[7..9], 16),
+        .sec = try fmt.charToDigit(stamp[9], 16),
+    };
+}
+
 fn tmDecode(muggle: time.tm) Time {
     const year = muggle.tm_year + 1900;
     const month = muggle.tm_mon;
