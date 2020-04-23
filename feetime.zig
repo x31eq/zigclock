@@ -151,16 +151,11 @@ pub fn timeFromArgs() !Time {
 
     if (datetime[2] == ':') {
         // HH:MM:SS
-        muggle.tm_hour = try fmt.parseInt(i32, datetime[0..2], 10);
-        muggle.tm_min = try fmt.parseInt(i32, datetime[3..5], 10);
-        muggle.tm_sec = try fmt.parseInt(i32, datetime[6..8], 10);
+        try parseTime(datetime[0..strlen(datetime)], &muggle);
     }
     else {
         // YY-mm-dd
-        muggle.tm_year = (try fmt.parseInt(i32, datetime[0..4], 10)) - 1900;
-        muggle.tm_mon = (try fmt.parseInt(i32, datetime[5..7], 10)) - 1;
-        muggle.tm_mday = try fmt.parseInt(i32, datetime[8..10], 10);
-
+        try parseDate(datetime[0..10], &muggle);
         if (std.os.argv.len > 2) {
             // HH:MM:SS
             const time_part = std.os.argv[2];
@@ -174,6 +169,13 @@ pub fn timeFromArgs() !Time {
     const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
     muggle.tm_wday = @intCast(i32, wday);
     return tmDecode(muggle);
+}
+
+// Turn a YYYY-mm-dd string into years, months, and days
+fn parseDate(date_part: []u8, muggle: *time.struct_tm) !void {
+    muggle.tm_year = (try fmt.parseInt(i32, date_part[0..4], 10)) - 1900;
+    muggle.tm_mon = (try fmt.parseInt(i32, date_part[5..7], 10)) - 1;
+    muggle.tm_mday = try fmt.parseInt(i32, date_part[8..], 10);
 }
 
 /// Turn a HH:MM:SS string into hours minutes and seconds
