@@ -1,7 +1,7 @@
 const std = @import("std");
 const feetime = @import("feetime.zig");
 const fmt = std.fmt;
-const strlen = @cImport(@cInclude("string.h")).strlen;
+const string = @cImport(@cInclude("string.h"));
 
 pub fn main() !void {
     const stdout = try std.io.getStdOut();
@@ -12,16 +12,11 @@ pub fn main() !void {
     const epoch = try fmt.parseInt(
             i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
     const stamp_arg = std.os.argv[1];
-    const arglen = strlen(stamp_arg);
+    const arglen = string.strlen(stamp_arg);
     var stamp = "0000:0000";
     var offset: usize = 0;
-    if (stamp_arg[0] == ':') {
-        offset = 4;
-    }
-    else if (stamp_arg[1] == ':') {
-        // only the half-day
-        offset = 3;
-    }
+    const divider: *u8 = string.strchr(stamp_arg, ':');
+    offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
     for (stamp_arg[0..arglen]) |c| {
         stamp[offset] = c;
         offset += 1;
