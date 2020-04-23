@@ -101,11 +101,11 @@ pub fn decode(feetime: Time) time.tm {
 
 /// Weekday (Sunday is 0) of a given day
 /// Where day starts at 1 and month is 0 for January
-fn weekday(year: i32, month: u8, day: i32) u8 {
+fn weekday(year: i32, month: i32, day: i32) u8 {
     // Based on RFC 3339 Appendix B
     var Y = year;
 
-    var m = @intCast(i32, month) - 1;
+    var m = month - 1;
     if (m < 1) {
         m += 12;
         Y -= 1;
@@ -136,52 +136,47 @@ pub fn timeFromArgs() !Time {
         return tmDecode(local);
     }
 
-    var year: i32 = 0;
-    var month: i32 = 1;
-    var day: i32 = 0;
-    var hour: i32 = 0;
-    var minute: i32 = 0;
-    var second: i32 = 0;
-
-    if (datetime[2] == ':') {
-        // HH:MM:SS
-        hour = try fmt.parseInt(i32, datetime[0..2], 10);
-        minute = try fmt.parseInt(i32, datetime[3..5], 10);
-        second = try fmt.parseInt(i32, datetime[6..8], 10);
-    }
-    else {
-        // YY-mm-dd
-        year = try fmt.parseInt(i32, datetime[0..4], 10);
-        month = try fmt.parseInt(i32, datetime[5..7], 10);
-        day = try fmt.parseInt(i32, datetime[8..10], 10);
-
-        if (std.os.argv.len > 2) {
-            // HH:MM:SS
-            const time_part = std.os.argv[2];
-            hour = try fmt.parseInt(i32, time_part[0..2], 10);
-            minute = try fmt.parseInt(i32, time_part[3..5], 10);
-            second = try fmt.parseInt(i32, time_part[6..8], 10);
-        }
-        else if (datetime[10] == ' ') {
-            // HH:MM:SS further back
-            hour = try fmt.parseInt(i32, datetime[11..13], 10);
-            minute = try fmt.parseInt(i32, datetime[14..16], 10);
-            second = try fmt.parseInt(i32, datetime[17..19], 10);
-        }
-    }
-
     muggle = time.tm {
-        .tm_year = year - 1900,
-        .tm_mon = month - 1,
-        .tm_mday = day,
-        .tm_hour = hour,
-        .tm_min = minute,
-        .tm_sec = second,
-        .tm_wday = @intCast(i32, weekday(year, @intCast(u8, month - 1), day)),
+        .tm_year = 84,
+        .tm_mon = 0,
+        .tm_mday = 0,
+        .tm_wday = 0,
+        .tm_hour = 0,
+        .tm_min = 0,
+        .tm_sec = 0,
         .tm_yday = 0,
         .tm_isdst = 0,
         .tm_gmtoff = 0,
         .tm_zone = 0,
     };
+
+    if (datetime[2] == ':') {
+        // HH:MM:SS
+        muggle.tm_hour = try fmt.parseInt(i32, datetime[0..2], 10);
+        muggle.tm_min = try fmt.parseInt(i32, datetime[3..5], 10);
+        muggle.tm_sec = try fmt.parseInt(i32, datetime[6..8], 10);
+    }
+    else {
+        // YY-mm-dd
+        muggle.tm_year = (try fmt.parseInt(i32, datetime[0..4], 10)) - 1900;
+        muggle.tm_mon = (try fmt.parseInt(i32, datetime[5..7], 10)) - 1;
+        muggle.tm_mday = try fmt.parseInt(i32, datetime[8..10], 10);
+
+        if (std.os.argv.len > 2) {
+            // HH:MM:SS
+            const time_part = std.os.argv[2];
+            muggle.tm_hour = try fmt.parseInt(i32, time_part[0..2], 10);
+            muggle.tm_min = try fmt.parseInt(i32, time_part[3..5], 10);
+            muggle.tm_sec = try fmt.parseInt(i32, time_part[6..8], 10);
+        }
+        else if (datetime[10] == ' ') {
+            // HH:MM:SS further back
+            muggle.tm_hour = try fmt.parseInt(i32, datetime[11..13], 10);
+            muggle.tm_min = try fmt.parseInt(i32, datetime[14..16], 10);
+            muggle.tm_sec = try fmt.parseInt(i32, datetime[17..19], 10);
+        }
+    }
+    const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
+    muggle.tm_wday = @intCast(i32, wday);
     return tmDecode(muggle);
 }
