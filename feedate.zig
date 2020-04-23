@@ -1,7 +1,6 @@
 const std = @import("std");
 const feetime = @import("feetime.zig");
 const fmt = std.fmt;
-const string = @cImport(@cInclude("string.h"));
 
 pub fn main() !void {
     const stdout = try std.io.getStdOut();
@@ -12,11 +11,10 @@ pub fn main() !void {
     const epoch = try fmt.parseInt(
             i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
     const stamp_arg = std.os.argv[1];
-    const arglen = std.mem.len(u8, stamp_arg);
+    const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     var stamp = "0000:0000";
-    const divider: *u8 = string.strchr(stamp_arg, ':');
-    const offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
-    std.mem.copy(u8, stamp[offset..], stamp_arg[0..arglen]);
+    const offset = 4 - std.mem.indexOfScalar(u8, stamp_in, ':').?;
+    std.mem.copy(u8, stamp[offset..], stamp_in);
     var quarter = try fmt.parseInt(i24, stamp[0..2], 16);
     const instant = feetime.Time {
         .quarter = quarter + epoch * 4,
