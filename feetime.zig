@@ -1,5 +1,6 @@
 const std = @import("std");
 const fmt = std.fmt;
+const mem = std.mem;
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
 
@@ -25,8 +26,8 @@ pub fn currentTime() Time {
 /// Decode a 10-digit hex string with . or : divider
 pub fn timeFromHex(stamp_in: [11]u8) !Time {
     var stamp = stamp_in;
-    if (std.mem.indexOfAny(u8, stamp, ".:")) |pos| {
-        std.mem.copy(u8, stamp[pos..], stamp[pos+1..]);
+    if (mem.indexOfAny(u8, stamp, ".:")) |pos| {
+        mem.copy(u8, stamp[pos..], stamp[pos+1..]);
     }
     return Time {
         .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
@@ -158,13 +159,13 @@ fn weekday(year: i32, month: i32, day: i32) u8 {
 /// Not very generic but saves code duplication.
 pub fn setStampFromArgs(stamp: []u8) !void {
     const stamp_arg = std.os.argv[1];
-    const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
-    const divider_pos = std.mem.indexOfAny(u8, stamp_in, ".:");
-    var offset = std.mem.indexOfAny(u8, stamp, ".:").? + 1;
+    const stamp_in = stamp_arg[0..mem.len(u8, stamp_arg)];
+    const divider_pos = mem.indexOfAny(u8, stamp_in, ".:");
+    var offset = mem.indexOfAny(u8, stamp, ".:").? + 1;
     if (divider_pos) |pos| {
         offset -= pos + 1;
     }
-    std.mem.copy(u8, stamp[offset..], stamp_in);
+    mem.copy(u8, stamp[offset..], stamp_in);
     if (offset > 1) {
         const epoch = try fmt.parseInt(
                 u32, std.os.getenv("HEXEPOCH") orelse "1984", 10);
@@ -201,7 +202,7 @@ pub fn timeFromArgs() !Time {
 
     if (datetime[0] == '@') {
         // POSIX timestamp (in decimal)
-        const timeslice = datetime[1..std.mem.len(u8, datetime)];
+        const timeslice = datetime[1..mem.len(u8, datetime)];
         const timestamp = try fmt.parseInt(i64, timeslice, 10);
         _ = time.localtime_r(&@intCast(c_long, timestamp), &muggle);
         return tmDecode(muggle);
@@ -209,7 +210,7 @@ pub fn timeFromArgs() !Time {
 
     if (datetime[2] == ':') {
         // HH:MM:SS
-        try parseTime(datetime[0..std.mem.len(u8, datetime)], &muggle);
+        try parseTime(datetime[0..mem.len(u8, datetime)], &muggle);
     }
     else {
         // YY-mm-dd
@@ -217,7 +218,7 @@ pub fn timeFromArgs() !Time {
         if (std.os.argv.len > 2) {
             // HH:MM:SS
             const time_part = std.os.argv[2];
-            try parseTime(time_part[0..std.mem.len(u8, time_part)], &muggle);
+            try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
         }
         else if (datetime[10] == ' ') {
             // HH:MM:SS further back
