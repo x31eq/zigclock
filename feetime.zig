@@ -151,12 +151,7 @@ pub fn setStampFromArgs(stamp: []u8, divider: u8) !void {
     }
     else if (offset > 0) {
         const epoch = try fmt.charToDigit(stamp[1], 16);
-        if (epoch < 0xe) {
-            stamp[0] = '2';
-        }
-        else {
-            stamp[0] = '1';
-        }
+        stamp[0] = if (epoch < 0xe) '2' else '1';
     }
 }
 
