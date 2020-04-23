@@ -38,7 +38,7 @@ pub fn main() !void {
         .halfday = try fmt.charToDigit(stamp[6], 16),
         .hour = try fmt.charToDigit(stamp[7], 16),
         .tick = try fmt.parseInt(u8, stamp[8..10], 16),
-        .sec = try fmt.charToDigit(stamp[10], 17),
+        .sec = try fmt.charToDigit(stamp[10], 16),
     };
     const muggle = feetime.decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
