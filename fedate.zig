@@ -8,32 +8,10 @@ pub fn main() !void {
         try stdout.write("Supply the hex timestamp on the command line\n");
         return;
     }
-    const stamp_arg = std.os.argv[1];
-    const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     var stamp = "00000.00000";
-    const divider_pos = std.mem.indexOfScalar(u8, stamp_in, '.');
-    var offset = std.mem.indexOfScalar(u8, stamp, '.').? + 1;
-    if (divider_pos) |pos| {
-        offset -= pos + 1;
-    }
-    std.mem.copy(u8, stamp[offset..], stamp_in);
-    var quarter = try fmt.parseInt(i24, stamp[0..4], 16);
-    if (offset > 1) {
-        const epoch = try fmt.parseInt(
-                i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
-        quarter += epoch * 4;
-    }
-    else if (offset > 0) {
-        if (quarter < 0xe00) {
-            quarter += 0x2000;
-        }
-        else {
-            quarter += 0x1000;
-        }
-    }
-
+    try feetime.setStampFromArgs(stamp[0..], '.');
     const instant = feetime.Time {
-        .quarter = quarter,
+        .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
         .week = try fmt.charToDigit(stamp[4], 16),
         .halfday = try fmt.charToDigit(stamp[6], 16),
         .hour = try fmt.charToDigit(stamp[7], 16),
