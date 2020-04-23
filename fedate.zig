@@ -12,9 +12,9 @@ pub fn main() !void {
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     var stamp = "00000.00000";
     const divider_pos = std.mem.indexOfScalar(u8, stamp_in, '.');
-    var offset: usize = 6;
+    var offset = std.mem.indexOfScalar(u8, stamp, '.').? + 1;
     if (divider_pos) |pos| {
-        offset = 5 - pos;
+        offset -= pos + 1;
     }
     std.mem.copy(u8, stamp[offset..], stamp_in);
     var quarter = try fmt.parseInt(i24, stamp[0..4], 16);
