@@ -15,11 +15,8 @@ pub fn main() !void {
     const arglen = string.strlen(stamp_arg);
     var stamp = "0000:0000";
     const divider: *u8 = string.strchr(stamp_arg, ':');
-    var offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
-    for (stamp_arg[0..arglen]) |c| {
-        stamp[offset] = c;
-        offset += 1;
-    }
+    const offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));
+    std.mem.copy(u8, stamp[offset..], stamp_arg[0..arglen]);
     var quarter = try fmt.parseInt(i24, stamp[0..2], 16);
     const instant = feetime.Time {
         .quarter = quarter + epoch * 4,
