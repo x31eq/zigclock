@@ -102,9 +102,14 @@ pub fn decode(feetime: Time) time.tm {
 pub fn isoFormat(instant: Time) ![20]u8 {
     const muggle = decode(instant);
     var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
+    // Years have to be formatted as 4 characters or the
+    // total length will be wrong.
+    // If the year is signed, a + comes in before 1000.
+    // Unsigned years won't work before year 0,
+    // but the proleptic Gregorian calendar doesn't mean much then anyway
     _ = try fmt.bufPrint(mugglebuf[0..],
-            "{}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
-            muggle.tm_year + 1900,
+            "{d: <4}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
+            @intCast(u32, muggle.tm_year + 1900),
             @intCast(u32, muggle.tm_mon + 1),
             @intCast(u32, muggle.tm_mday),
             @intCast(u32, muggle.tm_hour),
