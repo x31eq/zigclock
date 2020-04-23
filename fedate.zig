@@ -9,7 +9,6 @@ pub fn main() !void {
     }
     var stamp = "00000.00000";
     try feetime.setStampFromArgs(stamp[0..], '.');
-    std.mem.copy(u8, stamp[5..], stamp[6..]);
     const instant = try feetime.timeFromHex(stamp);
     try stdout.write(try feetime.isoFormat(instant));
 }
