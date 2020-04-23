@@ -11,23 +11,72 @@ https://bitbucket.org/x31eq/binaryclock
 You might also find a Rust repository that I've been
 working on in parallel.
 
-My current opinion of Zig is that it's quite a good
-replacement for C but the implementation could do with more polish
-and the standard library could do with documentation.
+The conclusion of the Zig tryout is that it works quite
+well as a replacement for C.  This is interesting because
+C has been around for a long time and it holds
+the niche of low-level-but-not-assembler very well.
+So the question is: is C the best language for this niche
+or is it something that gets used because it's ubiquitous
+and has tools and operating systems written around it?
+I don't know that there were any languages before Zig
+that were better than C at being C.  It think Zig is better,
+although it isn't a functional superset because it
+doesn't have the pre-processor, and hopefully never will.
+There are still good reasons to keep using C though:
+everybody uses it, the tools are better, and lots of things
+are written around it.
+
+The standard library for Zig is sparse and badly documented.
 Maybe you found this after searching for help on formatting
 with the standard library, in which case, yes, you'll learn
 something about hex formatting here.
 I worked it out mostly from the source code.
+I also replaced the C functions I'd included from "string.h".
+But I didn't have to: if the Zig standard library fails you,
+you can always fall back on C.  You have to deal with the
+strange way C handles strings but otherwise it's simple.
 
 I call out to a standard C library to get the local time.
 (I don't know how standard it is -- at least it works in Linux.)
-This is a good example of how simple it is to work with
-C libraries in Zig.
+I tried to use "strptime" but it didn't work.
+I didn't work out why.  As I didn't try this in C,
+I can't be sure that Zig is inferior to C at working with C,
+but it does look less than perfect.
+The code I wrote for parsing the date and time could
+use some improvement, which I can blame on Zig
+not being very good at string handling even when
+you find things in the standard library.
 
-It isn't finished yet.  We'll see how long it interests me
-and whether I remember to update this file.
+This project does most of what I wanted it to do now.
+It could do with better error handling.  Sometimes it
+crashes with a perplexing error or even a segfault.
+I'm lazy so I stuck with "happy path" error handling so far.
+
+The testing could also be improved.  I've got tests that
+I copied over from the original shell code, and so they
+still run as shell scripts.  They also happen to be
+essentially the same as I use for the Rust equivalent.
+They'd be faster if they ran in Zig (they take a few minutes)
+and there are also features I added that aren't tested.
 
 I used a makefile because although Zig has its own system
 that apparently makes them redundant, I don't know how to use it.
 I also hard-coded the path I happened to extract the binary to.
 You'll probably want to change this.
+
+Compared to Rust, the the Zig code is a bit longer.
+I think this is because Zig is missing features,
+and of course not everything has to be feature-packed
+but I think Zig could do with better type casting.
+There is, though, a huge difference in the executable size.
+The Rust binaries are nearly 8 times the size of the Zig binaries.
+Sometimes I even get backtraces out of Zig, so I don't know
+where all the bloat goes.  I think a lot of it's the
+string formatting, that I do use and that Rust does better,
+but there's probably also a lot of code that I don't use
+but doesn't get shaken out.  At least, Zig is doing a much
+better job of being C-like and producing small binaries
+with a minimal runtime.
+
+Generally, then, does what I wanted it to do and does it
+fairly efficiently.
