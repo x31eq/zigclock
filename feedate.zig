@@ -12,7 +12,7 @@ pub fn main() !void {
     const epoch = try fmt.parseInt(
             i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
     const stamp_arg = std.os.argv[1];
-    const arglen = string.strlen(stamp_arg);
+    const arglen = std.mem.len(u8, stamp_arg);
     var stamp = "0000:0000";
     const divider: *u8 = string.strchr(stamp_arg, ':');
     const offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));

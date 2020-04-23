@@ -10,7 +10,7 @@ pub fn main() !void {
         return;
     }
     const stamp_arg = std.os.argv[1];
-    const arglen = string.strlen(stamp_arg);
+    const arglen = std.mem.len(u8, stamp_arg);
     var stamp = "f000.00000";
     const divider: *u8 = string.strchr(stamp_arg, '.');
     const offset = 4 - (@ptrToInt(divider) - @ptrToInt(stamp_arg));

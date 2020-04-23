@@ -2,7 +2,6 @@ const std = @import("std");
 const fmt = std.fmt;
 const os = std.os;
 const time = @cImport(@cInclude("time.h"));
-const strlen = @cImport(@cInclude("string.h")).strlen;
 
 pub const Time = packed struct {
     quarter: i24,
@@ -143,7 +142,7 @@ pub fn timeFromArgs() !Time {
 
     if (datetime[0] == '@') {
         // POSIX timestamp (in decimal)
-        const timeslice = datetime[1..strlen(datetime)];
+        const timeslice = datetime[1..std.mem.len(u8, datetime)];
         const timestamp = try fmt.parseInt(i64, timeslice, 10);
         _ = time.localtime_r(&@intCast(c_long, timestamp), &muggle);
         return tmDecode(muggle);
@@ -151,7 +150,7 @@ pub fn timeFromArgs() !Time {
 
     if (datetime[2] == ':') {
         // HH:MM:SS
-        try parseTime(datetime[0..strlen(datetime)], &muggle);
+        try parseTime(datetime[0..std.mem.len(u8, datetime)], &muggle);
     }
     else {
         // YY-mm-dd
@@ -159,7 +158,7 @@ pub fn timeFromArgs() !Time {
         if (std.os.argv.len > 2) {
             // HH:MM:SS
             const time_part = std.os.argv[2];
-            try parseTime(time_part[0..strlen(time_part)], &muggle);
+            try parseTime(time_part[0..std.mem.len(u8, time_part)], &muggle);
         }
         else if (datetime[10] == ' ') {
             // HH:MM:SS further back
