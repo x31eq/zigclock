@@ -10,12 +10,22 @@ pub fn main() !void {
     }
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
-    var stamp = "1f000.00000";
+    var stamp = "00000.00000";
     const offset = 5 - std.mem.indexOfScalar(u8, stamp_in, '.').?;
     std.mem.copy(u8, stamp[offset..], stamp_in);
     var quarter = try fmt.parseInt(i24, stamp[0..4], 16);
-    if (offset > 0 and quarter < 0x1e00) {
-        quarter += 0x1000;
+    if (offset > 1) {
+        const epoch = try fmt.parseInt(
+                i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
+        quarter += epoch * 4;
+    }
+    else if (offset > 0) {
+        if (quarter < 0xe00) {
+            quarter += 0x2000;
+        }
+        else {
+            quarter += 0x1000;
+        }
     }
 
     const instant = feetime.Time {

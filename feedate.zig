@@ -8,8 +8,6 @@ pub fn main() !void {
         try stdout.write("Supply the hex timestamp on the command line\n");
         return;
     }
-    const epoch = try fmt.parseInt(
-            i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     var stamp = "000000:0000";
@@ -17,6 +15,8 @@ pub fn main() !void {
     std.mem.copy(u8, stamp[offset..], stamp_in);
     var quarter = try fmt.parseInt(i24, stamp[0..4], 16);
     if (offset > 1) {
+        const epoch = try fmt.parseInt(
+                i24, std.os.getenv("HEXEPOCH") orelse "1984", 10);
         quarter += epoch * 4;
     }
     else if (offset > 0) {
