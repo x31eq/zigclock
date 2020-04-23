@@ -163,7 +163,8 @@ pub fn timeFromArgs() !Time {
 
         if (std.os.argv.len > 2) {
             // HH:MM:SS
-            try parseTime(std.os.argv[2][0..8], &muggle);
+            const time_part = std.os.argv[2];
+            try parseTime(time_part[0..strlen(time_part)], &muggle);
         }
         else if (datetime[10] == ' ') {
             // HH:MM:SS further back
@@ -179,5 +180,5 @@ pub fn timeFromArgs() !Time {
 fn parseTime(time_part: []u8, muggle: *time.struct_tm) !void {
     muggle.tm_hour = try fmt.parseInt(i32, time_part[0..2], 10);
     muggle.tm_min = try fmt.parseInt(i32, time_part[3..5], 10);
-    muggle.tm_sec = try fmt.parseInt(i32, time_part[6..8], 10);
+    muggle.tm_sec = try fmt.parseInt(i32, time_part[6..], 10);
 }
