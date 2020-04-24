@@ -205,26 +205,24 @@ pub fn timeFromArgs() !Time {
     }
 
     const datetime_slice = datetime[0..mem.len(u8, datetime)];
-    if (datetime[2] == ':') {
-        // HH:MM:SS
-        try parseTime(datetime_slice, &muggle);
+    if (mem.indexOfScalar(u8, datetime_slice, ' ')) |space| {
+        // YY-mm-dd HH:MM:SS as a single argument
+        try parseDate(datetime[0..space], &muggle);
+        try parseTime(datetime_slice[(space + 1)..], &muggle);
+    }
+    else if (mem.indexOfScalar(u8, datetime_slice, ':') == null) {
+        // YY-mm-dd
+        try parseDate(datetime_slice, &muggle);
+
+        if (std.os.argv.len > 2) {
+            // HH:MM:SS
+            const time_part = std.os.argv[2];
+            try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
+        }
     }
     else {
-        if (mem.indexOfScalar(u8, datetime_slice, ' ')) |space| {
-            // YY-mm-dd HH:MM:SS as a single argument
-            try parseDate(datetime[0..space], &muggle);
-            try parseTime(datetime_slice[(space + 1)..], &muggle);
-        }
-        else {
-            // YY-mm-dd
-            try parseDate(datetime_slice, &muggle);
-
-            if (std.os.argv.len > 2) {
-                // HH:MM:SS
-                const time_part = std.os.argv[2];
-                try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
-            }
-        }
+        // HH:MM:SS
+        try parseTime(datetime_slice, &muggle);
     }
     const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
     muggle.tm_wday = @intCast(i32, wday);
