@@ -27,7 +27,7 @@ pub fn currentTime() Time {
 pub fn timeFromHex(stamp_in: [11]u8) !Time {
     var stamp = stamp_in;
     if (mem.indexOfAny(u8, stamp, ".:")) |pos| {
-        mem.copy(u8, stamp[pos..], stamp[pos+1..]);
+        mem.copy(u8, stamp[pos..], stamp[(pos + 1)..]);
     }
     return Time {
         .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
@@ -204,21 +204,26 @@ pub fn timeFromArgs() !Time {
         return tmDecode(muggle);
     }
 
+    const datetime_slice = datetime[0..mem.len(u8, datetime)];
     if (datetime[2] == ':') {
         // HH:MM:SS
-        try parseTime(datetime[0..mem.len(u8, datetime)], &muggle);
+        try parseTime(datetime_slice, &muggle);
     }
     else {
-        // YY-mm-dd
-        try parseDate(datetime[0..10], &muggle);
-        if (std.os.argv.len > 2) {
-            // HH:MM:SS
-            const time_part = std.os.argv[2];
-            try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
+        if (mem.indexOfScalar(u8, datetime_slice, ' ')) |space| {
+            // YY-mm-dd HH:MM:SS as a single argument
+            try parseDate(datetime[0..space], &muggle);
+            try parseTime(datetime_slice[(space + 1)..], &muggle);
         }
-        else if (datetime[10] == ' ') {
-            // HH:MM:SS further back
-            try parseTime(datetime[11..19], &muggle);
+        else {
+            // YY-mm-dd
+            try parseDate(datetime_slice, &muggle);
+
+            if (std.os.argv.len > 2) {
+                // HH:MM:SS
+                const time_part = std.os.argv[2];
+                try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
+            }
         }
     }
     const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
