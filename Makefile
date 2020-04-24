@@ -2,7 +2,7 @@ all: festamp feestamp fedate feedate decode
 .PHONY: all
 
 ZIG="../zig-linux-x86_64-0.5.0/zig"
-ZIGARGS=-lc build-exe --single-threaded
+ZIGARGS=-lc build-exe --release-small --single-threaded --strip
 
 festamp: festamp.zig feetime.zig
 	${ZIG} ${ZIGARGS} festamp.zig
