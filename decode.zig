@@ -10,7 +10,7 @@ pub fn main() !void {
     var stamp = "00000.00000";
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
-    if (std.mem.indexOfScalar(u8, stamp_in, ':')) |_| {
+    if (std.mem.indexOfScalar(u8, stamp_in, ':') != null) {
         stamp = "000000:0000";
     }
     try feetime.setStampFromArgs(stamp[0..]);

@@ -103,7 +103,7 @@ pub fn decode(feetime: Time) time.tm {
     return time.tm {
         .tm_year = year - 1900,
         .tm_mon = month,
-        .tm_mday = day,
+        .tm_mday = if (day > 31) 0 else day,  // format bad days as zero
         .tm_wday = wday,
         .tm_hour = feetime.hour + 12 * (feetime.halfday & 1),
         .tm_min = toc / 4,
