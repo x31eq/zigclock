@@ -166,8 +166,8 @@ pub fn setStampFromArgs(stamp: []u8) !void {
         const epoch = try fmt.parseInt(
                 u32, std.os.getenv("HEXEPOCH") orelse "1984", 10);
         _ = try fmt.bufPrint(stamp[0..2], "{x:0>2}", epoch / 64);
-        }
-        else if (offset > 0) {
+    }
+    else if (offset > 0) {
         const epoch = try fmt.charToDigit(stamp[1], 16);
         stamp[0] = if (epoch < 0xe) '2' else '1';
     }
