@@ -205,7 +205,7 @@ pub fn timeFromArgs() !Time {
     }
 
     const datetime_slice = datetime[0..mem.len(u8, datetime)];
-    if (mem.indexOfScalar(u8, datetime_slice, ' ')) |space| {
+    if (mem.indexOfAny(u8, datetime_slice, " T")) |space| {
         // YY-mm-dd HH:MM:SS as a single argument
         try parseDate(datetime[0..space], &muggle);
         try parseTime(datetime_slice[(space + 1)..], &muggle);
