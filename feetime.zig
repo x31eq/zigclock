@@ -185,7 +185,7 @@ pub fn timeFromArgs() !Time {
     muggle = time.tm {
         .tm_year = 84,
         .tm_mon = 0,
-        .tm_mday = 0,
+        .tm_mday = 1,
         .tm_wday = 0,
         .tm_hour = 0,
         .tm_min = 0,
