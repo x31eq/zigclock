@@ -8,7 +8,15 @@ pub fn main() !void {
         return;
     }
     var stamp = "000000:0000";
-    try feetime.setStampFromArgs(stamp[0..]);
-    const instant = try feetime.timeFromHex(stamp);
-    try stdout.write(try instant.isoFormat());
+    if(feetime.setStampFromArgs(stamp[0..])) {
+        if (feetime.timeFromHex(stamp)) |instant| {
+            try stdout.write(try instant.isoFormat());
+        }
+        else |_| {
+            try stdout.write("Bad timestamp\n");
+        }
+    }
+    else |_| {
+        try stdout.write("Failed to read timestamp, probably a bad epoch\n");
+    }
 }
