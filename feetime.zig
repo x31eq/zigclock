@@ -11,6 +11,70 @@ pub const Time = packed struct {
     hour: u8,
     tick: u8,
     sec: u8,
+
+    pub fn decode(self: Time) time.tm {
+        const year = @divFloor(self.quarter, 4);
+        const month = (@intCast(u8, self.quarter) % 4) * 3
+                        + (self.week * 16 + self.halfday) / 0x55;
+        // Guess for first day of the month of the quarter.
+        // Compare with code in the "to hex" calculation.
+        const qday = (month % 3) * 38 - @boolToInt(month == 2 or month == 11);
+        const wday = weekday(year, month, 1);
+        // week = (qday + day + 5 - weekday) / 7    [1]
+        // weekday = (weekday_1 + day - 1) % 7      [2]
+        // qday as above
+        // day = day of month (first day = 1) (we want to find this)
+        // weekday = days since Sunday
+        // wday = days since Sunday for the first day of the month (as above)
+        //
+        // Rearrange [1]
+        // week * 7 = qday + day + 5 - weekday
+        //            - (qday + day + 5 - weekday) % 7
+        // day = week * 7 + weekday - qday - 5
+        //       + (qday + day + 5 - weekday) % 7
+        //
+        // Substitute in [2]
+        // day = week * 7 + weekday - qday - 5
+        //       + (qday + day + 5 - (wday + day - 1)) % 7
+        // day = week * 7 + weekday - qday - 5 - (qday + 6 - wday) % 7
+        const day = self.week * 7 +% self.halfday / 2 -% qday -% 5
+                +% (6 + qday - wday) % 7;
+        const toc = self.tick / 16 * 15 + self.tick % 16;
+        return time.tm {
+            .tm_year = year - 1900,
+            .tm_mon = month,
+            .tm_mday = if (day > 31) 0 else day,  // format bad days as zero
+            .tm_wday = wday,
+            .tm_hour = self.hour + 12 * (self.halfday & 1),
+            .tm_min = toc / 4,
+            .tm_sec = (toc % 4) * 15 + self.sec,
+            .tm_yday = 0,
+            .tm_isdst = 0,
+            .tm_gmtoff = 0,
+            .tm_zone = 0,
+        };
+    }
+
+    /// Format the timestamp as ISO 8601 but with a space instead of a T
+    pub fn isoFormat(self: Time) ![20]u8 {
+        const muggle = self.decode();
+        var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
+        // Years have to be formatted as 4 characters or the
+        // total length will be wrong.
+        // If the year is signed, a + comes in before 1000.
+        // Unsigned years won't work before year 0,
+        // but the proleptic Gregorian calendar doesn't mean much then anyway
+        _ = try fmt.bufPrint(mugglebuf[0..],
+                "{d: <4}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
+                @intCast(u32, muggle.tm_year + 1900),
+                @intCast(u32, muggle.tm_mon + 1),
+                @intCast(u32, muggle.tm_mday),
+                @intCast(u32, muggle.tm_hour),
+                @intCast(u32, muggle.tm_min),
+                @intCast(u32, muggle.tm_sec),
+                );
+        return mugglebuf;
+    }
 };
 
 pub fn currentTime() Time {
@@ -67,70 +131,6 @@ fn tmDecode(muggle: time.tm) Time {
         .tick = @truncate(u8, (tick * 16) / 15),
         .sec = @truncate(u8, sec),
     };
-}
-
-pub fn decode(feetime: Time) time.tm {
-    const year = @divFloor(feetime.quarter, 4);
-    const month = (@intCast(u8, feetime.quarter) % 4) * 3
-                    + (feetime.week * 16 + feetime.halfday) / 0x55;
-    // Guess for first day of the month of the quarter.
-    // Compare with code in the "to hex" calculation.
-    const qday = (month % 3) * 38 - @boolToInt(month == 2 or month == 11);
-    const wday = weekday(year, month, 1);
-    // week = (qday + day + 5 - weekday) / 7    [1]
-    // weekday = (weekday_1 + day - 1) % 7      [2]
-    // qday as above
-    // day = day of month (first day = 1) (we want to find this)
-    // weekday = days since Sunday
-    // wday = days since Sunday for the first day of the month (as above)
-    //
-    // Rearrange [1]
-    // week * 7 = qday + day + 5 - weekday
-    //            - (qday + day + 5 - weekday) % 7
-    // day = week * 7 + weekday - qday - 5
-    //       + (qday + day + 5 - weekday) % 7
-    //
-    // Substitute in [2]
-    // day = week * 7 + weekday - qday - 5
-    //       + (qday + day + 5 - (wday + day - 1)) % 7
-    // day = week * 7 + weekday - qday - 5 - (qday + 6 - wday) % 7
-    const day = feetime.week * 7 +% feetime.halfday / 2 -% qday -% 5
-            +% (6 + qday - wday) % 7;
-    const toc = feetime.tick / 16 * 15 + feetime.tick % 16;
-    return time.tm {
-        .tm_year = year - 1900,
-        .tm_mon = month,
-        .tm_mday = if (day > 31) 0 else day,  // format bad days as zero
-        .tm_wday = wday,
-        .tm_hour = feetime.hour + 12 * (feetime.halfday & 1),
-        .tm_min = toc / 4,
-        .tm_sec = (toc % 4) * 15 + feetime.sec,
-        .tm_yday = 0,
-        .tm_isdst = 0,
-        .tm_gmtoff = 0,
-        .tm_zone = 0,
-    };
-}
-
-/// Format the timestamp as ISO 8601 but with a space instead of a T
-pub fn isoFormat(instant: Time) ![20]u8 {
-    const muggle = decode(instant);
-    var mugglebuf = "YYYY-mm-dd HH:MM:SS\n";
-    // Years have to be formatted as 4 characters or the
-    // total length will be wrong.
-    // If the year is signed, a + comes in before 1000.
-    // Unsigned years won't work before year 0,
-    // but the proleptic Gregorian calendar doesn't mean much then anyway
-    _ = try fmt.bufPrint(mugglebuf[0..],
-            "{d: <4}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}",
-            @intCast(u32, muggle.tm_year + 1900),
-            @intCast(u32, muggle.tm_mon + 1),
-            @intCast(u32, muggle.tm_mday),
-            @intCast(u32, muggle.tm_hour),
-            @intCast(u32, muggle.tm_min),
-            @intCast(u32, muggle.tm_sec),
-            );
-    return mugglebuf;
 }
 
 /// Weekday (Sunday is 0) of a given day

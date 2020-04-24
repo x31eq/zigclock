@@ -15,5 +15,5 @@ pub fn main() !void {
     }
     try feetime.setStampFromArgs(stamp[0..]);
     const instant = try feetime.timeFromHex(stamp);
-    try stdout.write(try feetime.isoFormat(instant));
+    try stdout.write(try instant.isoFormat());
 }
