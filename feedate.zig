@@ -10,7 +10,8 @@ pub fn main() !u8 {
     var stamp = "000000:0000";
     if(feetime.setStampFromArgs(stamp[0..])) {
         if (feetime.timeFromHex(stamp)) |instant| {
-            try stdout.write(try instant.isoFormat());
+            var output_buffer = "YYYYY-mm-dd HH:MM:SS\n";
+            try stdout.write(try instant.isoFormat(output_buffer[0..]));
             return 0;
         }
         else |_| {
