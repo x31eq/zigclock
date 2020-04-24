@@ -75,10 +75,7 @@ pub fn decode(feetime: Time) time.tm {
                     + (feetime.week * 16 + feetime.halfday) / 0x55;
     // Guess for first day of the month of the quarter.
     // Compare with code in the "to hex" calculation.
-    var qday = (month % 3) * 38;
-    if (month == 2 or month == 11) {
-        qday -= 1;
-    }
+    const qday = (month % 3) * 38 - @boolToInt(month == 2 or month == 11);
     const wday = weekday(year, month, 1);
     // week = (qday + day + 5 - weekday) / 7    [1]
     // weekday = (weekday_1 + day - 1) % 7      [2]
