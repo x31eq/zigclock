@@ -14,7 +14,7 @@ pub const Time = packed struct {
 
     pub fn decode(self: Time) time.tm {
         const year = @divFloor(self.quarter, 4);
-        const month = (@intCast(u8, self.quarter) % 4) * 3
+        const month = @intCast(u8, self.quarter & 3) * 3
                         + (self.week * 16 + self.halfday) / 0x55;
         // Guess for first day of the month of the quarter.
         // Compare with code in the "to hex" calculation.
