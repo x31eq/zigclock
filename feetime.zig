@@ -58,8 +58,9 @@ pub const Time = packed struct {
     /// Format the timestamp as ISO 8601 but with a space instead of a T
     pub fn isoFormat(self: Time) ![]u8 {
         const muggle = self.decode();
+        // I'm not sure when this gets freed but I haven't seen any problems
         var mugglebuf = "YYYY-mm-dd HH:MM:SSSS";
-        _ = try fmt.bufPrint(mugglebuf[0..],
+        return try fmt.bufPrint(mugglebuf[0..],
                 "{d}-{d:0<2}-{d:0>2} {d:0>2}:{d:0>2}:{d:0>2}\n",
                 muggle.tm_year + 1900,
                 @intCast(u32, muggle.tm_mon + 1),
@@ -67,8 +68,7 @@ pub const Time = packed struct {
                 @intCast(u32, muggle.tm_hour),
                 @intCast(u32, muggle.tm_min),
                 @intCast(u32, muggle.tm_sec),
-                );
-        return mem.trimRight(u8, mugglebuf[0..], "S");
+        );
     }
 };
 
