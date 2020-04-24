@@ -64,10 +64,12 @@ that apparently makes them redundant, I don't know how to use it.
 I also hard-coded the path I happened to extract the binary to.
 You'll probably want to change this.
 
-Compared to Rust, the the Zig code is a bit longer.
-I think this is because Zig is missing features,
-and of course not everything has to be feature-packed
-but I think Zig could do with better type casting.
+Compared to Rust, the the Zig code is a bit longer
+but there's hardly any difference in this respect.
+The two languages are quite similar for a simple task like this.
+There are a lot of syntactic similarities, and they both use
+union types for error handling.
+
 There is, though, a huge difference in the executable size.
 The Rust binaries are nearly 8 times the size of the Zig binaries.
 Sometimes I even get backtraces out of Zig, so I don't know
@@ -78,5 +80,81 @@ but doesn't get shaken out.  At least, Zig is doing a much
 better job of being C-like and producing small binaries
 with a minimal runtime.
 
-Generally, then, does what I wanted it to do and does it
-fairly efficiently.
+Another interesting comparison is that the source code of
+both Zig and Rust is much longer than the original shell code.
+Nearly an order of magnitude, in fact.
+To understand this, let's consider what the programs actually do:
+
+1. Read command line arguments
+
+1b. Get the current date and time (not always)
+
+2. Parse an incoming timestamp
+
+3. Do some arithmetic to get the date and time in a different form
+
+4. Format the new datetime and write it to stdout
+
+So, let's see how these things compare.
+
+Step 1a, shells have special syntax for not only reading
+command line arguments but substituting in special values.
+Rust and Zig both need libraries, which adds a few lines of code.
+So one conclusion is that you can work with command line arguments
+very efficiently with the shell.
+
+Step 1b, the shell implementations cheat really and use
+GNU date to get the current time whereas Rust and Zig use
+two-step library calls: get the time, then get broken-down local time.
+Also, the GNU date call can easily default to the current time
+when it isn't supplied.  In addition, GNU date allows very flexible
+input, so the shell implementations get an extra feature from this.
+Other languages could have used GNU date as an external process,
+but I decided not to do that.
+
+Step 2 also gets handled by GNU date when converting to hex.
+When the input is hex, shell makes it easy to split up tokens
+from the supplied string and convert it to hex.
+So another lesson is that shell support for text handling
+works well for the simple things you need for parsing fixed hex strings.
+Part of the overhead in Rust and Zig is around static typing.
+They also get a few extra features because I decided to add in
+a bit more logic, and that could have been done in the shell,
+but the shell scripts were so short to start with I didn't want
+to complicate them.
+
+Step 3, well, the arithmetic looks much the same in both cases.
+There is an extra overhead, particularly in Zig,
+from strong typing: shells don't distinguish signed from unsigned
+integers, and don't worry about overflow and the like.
+I made this a bit hard for myself by using fairly specific
+sizes for members of the Time struct, and also because the
+system library uses signed integers for things that can
+never be negative and so I took on an overhead converting
+between signed and unsigned.
+
+Another consideration on the arithmetic is that, because
+the code was already getting longer, I used
+more descriptive variable names in Rust and Zig and
+added some comments to explain what was going on.
+So this should mean the code is more readable
+to make up for being much longer.
+
+Step 4 is pretty similar in all cases.
+The shells use a printf call that's copied from C.
+I did originally use printf in Zig as a C import,
+but once I worked it out the native library works almost as well
+with a couple of extra lines of overhead to get at stdout.
+One issue is that Zig formats signed integers with a + sign
+when you specify the field width, so I had to ensure
+casting to unsigned to get around this, which I mentioned above.
+Rust has a println macro that has all the features I need.
+
+The safety of Rust and Zig should give me the opportunity
+to add more informative error messages for bad input.
+Like I said, though, I'm lazy and haven't really implemented it.
+
+Now this README is getting to be as big as the code,
+at least measured in bytes, and therefore is
+much longer than the original shell code.
+I think I'll end it here.
