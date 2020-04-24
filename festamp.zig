@@ -4,12 +4,27 @@ const feetime = @import("feetime.zig");
 pub fn main() !void {
     const stdout = try std.io.getStdOut();
 
-    const instant = try feetime.timeFromArgs();
-    const quarter = @intCast(u16, instant.quarter & 0xfff);
-    var arrbuf = "xxxx.xxxx\n";
-    _ = try std.fmt.bufPrint(arrbuf[0..],
-            "{x:0>3}{x:0>1}.{x:0>1}{x:0>1}{x:0>2}",
-            quarter, instant.week, instant.halfday,
-            instant.hour, instant.tick);
-    try stdout.write(arrbuf);
+    if (feetime.timeFromArgs()) |instant| {
+        const quarter = @intCast(u32, instant.quarter & 0xfff);
+        var arrbuf = "xxxx.xxxx\n";
+        if (std.fmt.bufPrint(arrbuf[0..],
+                "{x:0>3}{x:0>1}.{x:0>1}{x:0>1}{x:0>2}",
+                quarter, instant.week, instant.halfday,
+                instant.hour, instant.tick)) |_| {
+            if (std.mem.endsWith(u8, arrbuf, "\n")) {
+                try stdout.write(arrbuf);
+            }
+            else {
+                // This means the format overran
+                try stdout.write(arrbuf);
+                try stdout.write(" Invalid date/time\n");
+            }
+        }
+        else |_| {
+            try stdout.write("Failed to encode\n");
+        }
+    }
+    else |_| {
+        try stdout.write("Bad date/time format\n");
+    }
 }
