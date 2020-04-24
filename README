@@ -48,10 +48,6 @@ not being very good at string handling even when
 you find things in the standard library.
 
 This project does most of what I wanted it to do now.
-It could do with better error handling.  Sometimes it
-crashes with a perplexing error or even a segfault.
-I'm lazy so I stuck with "happy path" error handling so far.
-
 The testing could also be improved.  I've got tests that
 I copied over from the original shell code, and so they
 still run as shell scripts.  They also happen to be
@@ -65,10 +61,10 @@ I also hard-coded the path I happened to extract the binary to.
 You'll probably want to change this.
 
 Compared to Rust, the the Zig code is a bit longer
-but there's hardly any difference in this respect.
+mostly because I didn't sort out the error handling in Rust.
 The two languages are quite similar for a simple task like this.
 There are a lot of syntactic similarities, and they both use
-union types for error handling.
+union types for error handling (when you don't ignore the errors).
 
 There is, though, a huge difference in the executable size.
 The Rust binaries are nearly 8 times the size of the Zig binaries.
@@ -150,9 +146,10 @@ when you specify the field width, so I had to ensure
 casting to unsigned to get around this, which I mentioned above.
 Rust has a println macro that has all the features I need.
 
-The safety of Rust and Zig should give me the opportunity
+The safety of Rust and Zig also gives you the opportunity
 to add more informative error messages for bad input.
-Like I said, though, I'm lazy and haven't really implemented it.
+This isn't something I care about much, but for proper
+applications that other people use it would be important.
 
 Now this README is getting to be as big as the code,
 at least measured in bytes, and therefore is
