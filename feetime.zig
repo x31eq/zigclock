@@ -2,7 +2,7 @@ const std = @import("std");
 const fmt = std.fmt;
 const mem = std.mem;
 const os = std.os;
-const time = @cImport(@cInclude("time.h"));
+pub const time = @cImport(@cInclude("time.h"));
 
 pub const Time = packed struct {
     quarter: i24,
@@ -96,7 +96,7 @@ pub fn timeFromHex(stamp_in: [11]u8) !Time {
     };
 }
 
-fn tmDecode(muggle: time.tm) Time {
+pub fn tmDecode(muggle: time.tm) Time {
     const year = muggle.tm_year + 1900;
     const month = muggle.tm_mon;
     // Guess the first day of the month of the quarter by
@@ -126,7 +126,7 @@ fn tmDecode(muggle: time.tm) Time {
 
 /// Weekday (Sunday is 0) of a given day
 /// Where day starts at 1 and month is 0 for January
-fn weekday(year: i32, month: i32, day: i32) u8 {
+pub fn weekday(year: i32, month: i32, day: i32) u8 {
     // Based on RFC 3339 Appendix B
     var Y = year;
 
@@ -141,76 +141,4 @@ fn weekday(year: i32, month: i32, day: i32) u8 {
     const wday = @divFloor(26 * m - 2, 10) + day + Y
                 + @divFloor(Y, 4) + @divFloor(cent, 4) + 5 * cent;
     return @intCast(u8, @mod(wday, 7));
-}
-
-/// Determine a time from command line arguments.
-/// This isn't very generic, but saves a lot of duplicated code.
-pub fn timeFromArgs() !Time {
-    if (std.os.argv.len < 2) {
-        return currentTime();
-    }
-    var muggle: time.tm = undefined;
-    const datetime = std.os.argv[1];
-
-    muggle = time.tm {
-        .tm_year = 84,
-        .tm_mon = 0,
-        .tm_mday = 1,
-        .tm_wday = 0,
-        .tm_hour = 0,
-        .tm_min = 0,
-        .tm_sec = 0,
-        .tm_yday = 0,
-        .tm_isdst = 0,
-        .tm_gmtoff = 0,
-        .tm_zone = 0,
-    };
-
-    if (datetime[0] == '@') {
-        // POSIX timestamp (in decimal)
-        const timeslice = datetime[1..mem.len(u8, datetime)];
-        const timestamp = try fmt.parseInt(i64, timeslice, 10);
-        _ = time.localtime_r(&@intCast(c_long, timestamp), &muggle);
-        return tmDecode(muggle);
-    }
-
-    const datetime_slice = datetime[0..mem.len(u8, datetime)];
-    if (mem.indexOfAny(u8, datetime_slice, " T")) |space| {
-        // YY-mm-dd HH:MM:SS as a single argument
-        try parseDate(datetime[0..space], &muggle);
-        try parseTime(datetime_slice[(space + 1)..], &muggle);
-    }
-    else if (mem.indexOfScalar(u8, datetime_slice, ':') == null) {
-        // YY-mm-dd
-        try parseDate(datetime_slice, &muggle);
-
-        if (std.os.argv.len > 2) {
-            // HH:MM:SS
-            const time_part = std.os.argv[2];
-            try parseTime(time_part[0..mem.len(u8, time_part)], &muggle);
-        }
-    }
-    else {
-        // HH:MM:SS
-        try parseTime(datetime_slice, &muggle);
-    }
-    const wday = weekday(muggle.tm_year + 1900, muggle.tm_mon, muggle.tm_mday);
-    muggle.tm_wday = @intCast(i32, wday);
-    return tmDecode(muggle);
-}
-
-/// Turn a YYYY-mm-dd string into years, months, and days
-fn parseDate(date_part: []u8, muggle: *time.struct_tm) !void {
-    var tokens = mem.tokenize(date_part, "-");
-    muggle.tm_year = (try fmt.parseInt(i32, tokens.next().?, 10)) - 1900;
-    muggle.tm_mon = (try fmt.parseInt(i32, tokens.next().?, 10)) - 1;
-    muggle.tm_mday = try fmt.parseInt(i32, tokens.next().?, 10);
-}
-
-/// Turn a HH:MM:SS string into hours, minutes and seconds
-fn parseTime(time_part: []u8, muggle: *time.struct_tm) !void {
-    var tokens = mem.tokenize(time_part, ":");
-    muggle.tm_hour = try fmt.parseInt(i32, tokens.next().?, 10);
-    muggle.tm_min = try fmt.parseInt(i32, tokens.next().?, 10);
-    muggle.tm_sec = try fmt.parseInt(i32, (tokens.next() orelse "0"), 10);
 }
