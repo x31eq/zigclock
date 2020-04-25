@@ -122,7 +122,27 @@ feedate_test()
         if [ "$(HEXEPOCH=$HEXEPOCH ./feedate $original)" != "$expected" ]
         then
             echo "HEXEPOCH=$HEXEPOCH ./feedate $original doesn't give $expected"
-            exit 21
+            exit 22
+        fi
+    fi
+}
+
+fedate_test()
+{
+    local original=$1
+    local expected="$2 ${3-00:00:00}"
+    if [ -z "$HEXEPOCH" ]
+    then
+        if [ "$(./fedate $original)" != "$expected" ]
+        then
+            echo "./fedate $original doesn't give $expected"
+            exit 31
+        fi
+    else
+        if [ "$(HEXEPOCH=$HEXEPOCH ./fedate $original)" != "$expected" ]
+        then
+            echo "HEXEPOCH=$HEXEPOCH ./fedate $original doesn't give $expected"
+            exit 32
         fi
     fi
 }
@@ -236,7 +256,6 @@ fe_test .0015 00:05:00
 fe_test .0055 00:20:00
 fe_test .00aa 00:40:00
 
-HEXEPOCH=1920 true
 HEXEPOCH=1920 feedate_test    8:    1920-01-01
 HEXEPOCH=1920 feedate_test d3ec:8   1972-12-30 08:00:00
 HEXEPOCH=1920 feedate_test d3f1:b8  1972-12-31 23:30:00
@@ -248,7 +267,7 @@ feedate_test ed3f1:b8  1972-12-31 23:30:00
 feedate_test ed402:    1973-01-01 00:00:00
 feedate_test     :     1984-01-01
 feedate_test  303:0303 1984-10-01 12:11:18
-feedate_test  303:3030 1984-10-01 15:00:45
+feedate_test  303:303  1984-10-01 15:00:45
 feedate_test  3ec:     1984-12-29
 feedate_test  3f0:     1984-12-30
 feedate_test  3f2:     1984-12-31
@@ -263,6 +282,33 @@ feedate_test b00c:     2028-01-01
 feedate_test b3ec:     2028-12-30
 feedate_test b3f0:     2028-12-31
 feedate_test b402:     2029-01-01
+
+HEXEPOCH=1920 fedate_test    .8    1920-01-01
+HEXEPOCH=1920 fedate_test d3e.c8   1972-12-30 08:00:00
+HEXEPOCH=1920 fedate_test d3f.1b8  1972-12-31 23:30:00
+HEXEPOCH=1920 fedate_test d40.2     1973-01-01 00:00:00
+unset HEXEPOCH=
+fedate_test e000.8   1920-01-01
+fedate_test ed3e.c8  1972-12-30 08:00:00
+fedate_test ed3f.1b8 1972-12-31 23:30:00
+fedate_test ed40.2   1973-01-01 00:00:00
+fedate_test     .    1984-01-01
+fedate_test  30.30303 1984-10-01 12:11:18
+fedate_test  30.3303 1984-10-01 15:00:45
+fedate_test  3e.c    1984-12-29
+fedate_test  3f.0    1984-12-30
+fedate_test  3f.2    1984-12-31
+fedate_test  40.4    1985-01-01
+fedate_test 281.0    1994-01-02
+fedate_test 400.c    2000-01-01
+fedate_test 43e.c    2000-12-30
+fedate_test 43f.0    2000-12-31
+fedate_test 440.2    2001-01-01
+fedate_test 816.a    2016-05-06
+fedate_test b00.c    2028-01-01
+fedate_test b3e.c    2028-12-30
+fedate_test b3f.0    2028-12-31
+fedate_test b40.2    2029-01-01
 
 [ -n "$( ./feestamp)" ] ||
 {
