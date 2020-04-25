@@ -19,7 +19,6 @@ fee_test()
                 exit 7
             fi
         fi
-        # HEXEPOCH isn't supported yet
         if false && [ ${1%%-*} -ge 1920 ] && [ ${1%%-*} -lt 1984 ]
         then
             decoded=$(HEXEPOCH=1920  ./feedate $expected)
@@ -41,6 +40,40 @@ fee_test()
         if [ "$measured" != "$*" ]
         then
             echo "./feedate $expected doesn't give $*" >&2
+            exit 9
+        fi
+    fi
+}
+
+fe_test()
+{
+    local expected=$1
+    shift
+    if [ "${expected#.}" = "$expected" ] && [ "${expected#?.}" = "$expected" ]
+    then
+        if [ "$(./festamp "$*")" != "$expected" ]
+        then
+            echo HEXEPOCH $HEXEPOCH
+            echo "./festamp $* doesn't give $expected" >&2
+            exit 1
+        fi
+        if [ "$(date +'%F %T' -d "$*")" != "$( ./fedate $expected)" ]
+        then
+            echo "./fedate $expected doesn't give $*" >&2
+            exit 7
+        fi
+    else
+        # Time part only
+        local measured=$( ./festamp "$*")
+        if [ "${measured#*.}" != "${expected#*.}" ]
+        then
+            echo "./festamp $* doesn't end with :${expected.*:}" >&2
+            exit 1
+        fi
+        measured=$( ./fedate $expected | cut -d ' ' -f 2)
+        if [ "$measured" != "$*" ]
+        then
+            echo "./fedate $expected doesn't give $*" >&2
             exit 9
         fi
     fi
@@ -110,6 +143,51 @@ fee_test :0550 00:20:00
 fee_test :0aa0 00:40:00
 fee_test :0fee 00:59:59
 
+fe_test e000.8000 1920-01-01
+fe_test ed3e.c800 1972-12-30 08:00:00
+fe_test ed3f.1b80 1972-12-31 23:30:00
+fe_test ed40.2000 1973-01-01 00:00:00
+fe_test f000.0000 1984-01-01
+fe_test f030.3303 1984-10-01 15:00:45
+fe_test f03e.c000 1984-12-29
+fe_test f03f.0000 1984-12-30
+fe_test f03f.2000 1984-12-31
+fe_test f040.4000 1985-01-01
+fe_test f281.0000 1994-01-02
+fe_test f400.c000 2000-01-01
+fe_test f43e.c000 2000-12-30
+fe_test f43f.0000 2000-12-31
+fe_test f440.2000 2001-01-01
+fe_test f816.a000 2016-05-06 00:00:00
+fe_test fb00.c000 2028-01-01
+fe_test fb3e.c000 2028-12-30
+fe_test fb3f.0000 2028-12-31
+fe_test fb40.2000 2029-01-01
+(
+    export TZ=right/Asia/Kolkata
+    fe_test ed40.257e 1973-01-01 05:29:45
+    fe_test ed40.2580 1973-01-01 05:30:00
+) || exit 7
+
+fe_test .0000 00:00:00
+fe_test .1000 12:00:00
+fe_test .0001 00:00:15
+fe_test .0004 00:01:00
+fe_test .0008 00:02:00
+fe_test .000c 00:03:00
+fe_test .0040 00:15:00
+fe_test .0080 00:30:00
+fe_test .00c0 00:45:00
+fe_test .0100 01:00:00
+fe_test .1100 13:00:00
+fe_test .0b00 11:00:00
+fe_test .1b00 23:00:00
+
+fe_test .0011 00:04:00
+fe_test .0015 00:05:00
+fe_test .0055 00:20:00
+fe_test .00aa 00:40:00
+
 [ -n "$( ./feestamp)" ] ||
 {
     echo "Current time failed" >&2
@@ -119,5 +197,17 @@ fee_test :0fee 00:59:59
 if [ "$(./feedate 8bdd:6fef)" != "2018-12-22 18:59:60" ]
 then
     echo "Standalone feedate test failed" >&2
+    exit 8
+fi
+
+[ -n "$( ./festamp)" ] ||
+{
+    echo "Current fe time failed" >&2
+    exit 2
+}
+
+if [ "$(./fedate 8bd.d6fef)" != "2018-12-22 18:59:60" ]
+then
+    echo "Standalone fedate test failed" >&2
     exit 8
 fi
