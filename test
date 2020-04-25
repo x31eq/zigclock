@@ -18,6 +18,11 @@ fee_test()
                 echo "./feedate $expected doesn't give $*" >&2
                 exit 7
             fi
+            if [ "$(date +'%F %T' -d "$*")" != "$( ./decode $expected)" ]
+            then
+                echo "./decode $expected doesn't give $*" >&2
+                exit 17
+            fi
         fi
         if false && [ ${1%%-*} -ge 1920 ] && [ ${1%%-*} -lt 1984 ]
         then
@@ -26,6 +31,12 @@ fee_test()
             then
                 echo "./feedate $expected doesn't give $*" >&2
                 exit 7
+            fi
+            decoded=$(HEXEPOCH=1920  ./decode $expected)
+            if [ "$(date +'%F %T' -d "$*")" != "$decoded" ]
+            then
+                echo "./decode $expected doesn't give $*" >&2
+                exit 17
             fi
         fi
     else
@@ -41,6 +52,12 @@ fee_test()
         then
             echo "./feedate $expected doesn't give $*" >&2
             exit 9
+        fi
+        measured=$( ./decode $expected | cut -d ' ' -f 2)
+        if [ "$measured" != "$*" ]
+        then
+            echo "./decode $expected doesn't give $*" >&2
+            exit 19
         fi
     fi
 }
@@ -62,6 +79,11 @@ fe_test()
             echo "./fedate $expected doesn't give $*" >&2
             exit 7
         fi
+        if [ "$(date +'%F %T' -d "$*")" != "$( ./decode $expected)" ]
+        then
+            echo "./decode $expected doesn't give $*" >&2
+            exit 17
+        fi
     else
         # Time part only
         local measured=$( ./festamp "$*")
@@ -75,6 +97,12 @@ fe_test()
         then
             echo "./fedate $expected doesn't give $*" >&2
             exit 9
+        fi
+        measured=$( ./decode $expected | cut -d ' ' -f 2)
+        if [ "$measured" != "$*" ]
+        then
+            echo "./decode $expected doesn't give $*" >&2
+            exit 19
         fi
     fi
 }
