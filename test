@@ -107,6 +107,26 @@ fe_test()
     fi
 }
 
+feedate_test()
+{
+    local original=$1
+    local expected="$2 ${3-00:00:00}"
+    if [ -z "$HEXEPOCH" ]
+    then
+        if [ "$(./feedate $original)" != "$expected" ]
+        then
+            echo "./feedate $original doesn't give $expected"
+            exit 21
+        fi
+    else
+        if [ "$(HEXEPOCH=$HEXEPOCH ./feedate $original)" != "$expected" ]
+        then
+            echo "HEXEPOCH=$HEXEPOCH ./feedate $original doesn't give $expected"
+            exit 21
+        fi
+    fi
+}
+
 # Pretend the internal clock is in atomic time
 # so that leap seconds are expressible
 export TZ=right/UTC
@@ -215,6 +235,34 @@ fe_test .0011 00:04:00
 fe_test .0015 00:05:00
 fe_test .0055 00:20:00
 fe_test .00aa 00:40:00
+
+HEXEPOCH=1920 true
+HEXEPOCH=1920 feedate_test    8:    1920-01-01
+HEXEPOCH=1920 feedate_test d3ec:8   1972-12-30 08:00:00
+HEXEPOCH=1920 feedate_test d3f1:b8  1972-12-31 23:30:00
+HEXEPOCH=1920 feedate_test d402:    1973-01-01 00:00:00
+unset HEXEPOCH=
+feedate_test e0008:    1920-01-01
+feedate_test ed3ec:8   1972-12-30 08:00:00
+feedate_test ed3f1:b8  1972-12-31 23:30:00
+feedate_test ed402:    1973-01-01 00:00:00
+feedate_test     :     1984-01-01
+feedate_test  303:0303 1984-10-01 12:11:18
+feedate_test  303:3030 1984-10-01 15:00:45
+feedate_test  3ec:     1984-12-29
+feedate_test  3f0:     1984-12-30
+feedate_test  3f2:     1984-12-31
+feedate_test  404:     1985-01-01
+feedate_test 2810:     1994-01-02
+feedate_test 400c:     2000-01-01
+feedate_test 43ec:     2000-12-30
+feedate_test 43f0:     2000-12-31
+feedate_test 4402:     2001-01-01
+feedate_test 816a:     2016-05-06
+feedate_test b00c:     2028-01-01
+feedate_test b3ec:     2028-12-30
+feedate_test b3f0:     2028-12-31
+feedate_test b402:     2029-01-01
 
 [ -n "$( ./feestamp)" ] ||
 {
