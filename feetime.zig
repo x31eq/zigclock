@@ -107,8 +107,6 @@ fn tmDecode(muggle: time.tm) Time {
     if (month == 2 or month == 11) {
         qday -= 1;
     }
-    const wday = @intCast(i32,
-            weekday(year, @intCast(u8, month), muggle.tm_mday));
     // Now add extra days to account for months not starting on Sunday.
     qday += @intCast(u16, muggle.tm_mday + 5 - muggle.tm_wday);
     var sec = @intCast(u16, muggle.tm_sec);
