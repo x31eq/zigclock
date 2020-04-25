@@ -9,7 +9,7 @@ pub fn main() u8 {
     const stamp_arg = std.os.argv[1];
     const stamp_in = stamp_arg[0..std.mem.len(u8, stamp_arg)];
     if (std.mem.indexOfScalar(u8, stamp_in, ':') == null) {
-        return feedate.mainDelegated("000000:0000");
+        return feedate.mainDelegated("00000.00000"[0..]);
     }
-    return feedate.mainDelegated("00000.00000");
+    return feedate.mainDelegated("000000:0000"[0..]);
 }
