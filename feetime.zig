@@ -143,34 +143,6 @@ fn weekday(year: i32, month: i32, day: i32) u8 {
     return @intCast(u8, @mod(wday, 7));
 }
 
-/// Set the string to filled out command line input.
-/// Not very generic but saves code duplication.
-pub fn setStampFromArgs(stamp: []u8) !void {
-    const stamp_arg = std.os.argv[1];
-    const stamp_in = stamp_arg[0..mem.len(u8, stamp_arg)];
-    var offset = mem.indexOfAny(u8, stamp, ".:").? + 1;
-    if (mem.indexOfAny(u8, stamp_in, ".:")) |pos| {
-        offset -= pos + 1;
-    }
-    mem.copy(u8, stamp[offset..], stamp_in);
-    if (offset > 1) {
-        var epoch_prefix: u32 = 0x1f;
-        if (std.os.getenv("HEXEPOCH")) |epoch_arg| {
-            if (fmt.parseInt(u32, epoch_arg, 10)) |epoch| {
-                epoch_prefix = epoch / 64;
-            }
-            else |_| {
-                std.debug.warn("Bad HEXEPOCH, using default\n");
-            }
-        }
-        _ = try fmt.bufPrint(stamp[0..2], "{x:0>2}", epoch_prefix);
-    }
-    else if (offset > 0) {
-        const epoch = try fmt.charToDigit(stamp[1], 16);
-        stamp[0] = if (epoch < 0xe) '2' else '1';
-    }
-}
-
 /// Determine a time from command line arguments.
 /// This isn't very generic, but saves a lot of duplicated code.
 pub fn timeFromArgs() !Time {
