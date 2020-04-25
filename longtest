@@ -28,7 +28,10 @@ test_correct_quarter()
     true_quarter=$(((year*4 + (month-1)/3) & 0xff))
     stamp=$(./feestamp @$1)
     ((true_quarter == 0x$stamp[1,2])) ||
-        fail Bad quarter $stamp $true_quarter
+        fail Bad quarter feestamp $stamp $true_quarter
+    stamp=$(./festamp @$1)
+    ((true_quarter == 0x$stamp[2,3])) ||
+        fail Bad quarter festamp $stamp $true_quarter
 )
 
 # Test every time over a day
@@ -59,7 +62,7 @@ test_all_year()
         test_unix_stamp $unix_stamp
         test_correct_quarter $unix_stamp || exit 2
         today=0x$(./feestamp @$unix_stamp | sed s/://)
-        ((yesterday < today)) || fail Out of sequence $yesterday $today
+        ((yesterday < today)) || fail Out of sequence feestamp $yesterday $today
         month=$(date +%m -d @$unix_stamp)
         if ((month != yestermonth))
         then
@@ -68,6 +71,15 @@ test_all_year()
             yestermonth=$month
         fi
         yesterday=$today
+        tofe=0x$(./festamp @$unix_stamp | sed 's/\.//')
+        ((yesterfe < tofe)) || fail Out of sequence festamp $yesterfe $tofe
+        if ((month != yestermonth))
+        then
+            [[ ${yesterfe:5:1} == ${tofe:5:1} ]] &&
+                fail Month changes without week changing $yesterfe $tofe
+            yestermonth=$month
+        fi
+        yesterfe=$tofe
     done
     # New Year's Eve would have been missed in a leap year
     unix_stamp=$(date +%s -d $1-12-31)
