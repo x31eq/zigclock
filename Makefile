@@ -10,13 +10,13 @@ festamp: festamp.zig feetime.zig
 feestamp: feestamp.zig feetime.zig
 	${ZIG} ${ZIGARGS} feestamp.zig
 
-fedate: fedate.zig feetime.zig
+fedate: fedate.zig feedate.zig feetime.zig
 	${ZIG} ${ZIGARGS} fedate.zig
 
 feedate: feedate.zig feetime.zig
 	${ZIG} ${ZIGARGS} feedate.zig
 
-decode: decode.zig feetime.zig
+decode: decode.zig feetime.zig feedate.zig
 	${ZIG} ${ZIGARGS} decode.zig
 
 festamp-static: festamp.zig feetime.zig
