@@ -10,8 +10,16 @@ fail()
 
 test_unix_stamp()
 {
-    [[ $(date +%s -d "$(./feedate $(./feestamp @$1))") == $1 ]] ||
-        fail failed $1
+    fee=$(./feestamp @$1)
+    [[ $(date +%s -d "$(./feedate $fee)") == $1 ]] ||
+        fail feedate failed $TZ $HEXEPOCH $1
+    [[ $(date +%s -d "$(./decode $fee)") == $1 ]] ||
+        fail fee decode failed $TZ $HEXEPOCH $1
+    fe=$(./festamp @$1)
+    [[ $(date +%s -d "$(./fedate $fe)") == $(($1/15*15)) ]] ||
+        fail fedate failed $TZ $HEXEPOCH $1
+    [[ $(date +%s -d "$(./decode $fe)") == $(($1/15*15)) ]] ||
+        fail fe decode failed $TZ $HEXEPOCH $1
 }
 
 test_correct_quarter()
