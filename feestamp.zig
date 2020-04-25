@@ -17,12 +17,12 @@ pub fn main() !u8 {
             }
             else {
                 // This means the format overran
-                try stdout.write("Invalid date/time\n");
+                std.debug.warn("Invalid date/time\n");
                 return 1;
             }
         }
         else |_| {
-            try stdout.write("Failed to encode\n");
+            std.debug.warn("Failed to encode\n");
             return 2;
         }
     }

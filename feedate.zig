@@ -4,7 +4,7 @@ const feetime = @import("feetime.zig");
 pub fn main() !u8 {
     const stdout = try std.io.getStdOut();
     if (std.os.argv.len < 2) {
-        try stdout.write("Supply the hex timestamp on the command line\n");
+        std.debug.warn("Supply the hex timestamp on the command line\n");
         return 1;
     }
     var stamp = "000000:0000";
@@ -15,11 +15,11 @@ pub fn main() !u8 {
             return 0;
         }
         else |_| {
-            try stdout.write("Bad timestamp\n");
+            std.debug.warn("Bad timestamp\n");
         }
     }
     else |_| {
-        try stdout.write("Bad epoch\n");
+        std.debug.warn("Bad epoch\n");
     }
     return 2;
 }
