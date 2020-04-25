@@ -13,7 +13,7 @@ pub fn main() !u8 {
     if (std.mem.indexOfScalar(u8, stamp_in, ':') != null) {
         stamp = "000000:0000";
     }
-    if(feetime.setStampFromArgs(stamp[0..])) {
+    if (feetime.setStampFromArgs(stamp[0..])) {
         if (feetime.timeFromHex(stamp)) |instant| {
             var output_buffer = "YYYYY-mm-dd HH:MM:SS\n";
             try stdout.write(try instant.isoFormat(output_buffer[0..]));
@@ -21,11 +21,10 @@ pub fn main() !u8 {
         }
         else |_| {
             try stdout.write("Bad timestamp\n");
-            return 2;
         }
     }
     else |_| {
-        try stdout.write("Failed to read timestamp, probably a bad epoch\n");
-        return 3;
+        try stdout.write("Bad epoch\n");
     }
+    return 2;
 }

@@ -154,9 +154,16 @@ pub fn setStampFromArgs(stamp: []u8) !void {
     }
     mem.copy(u8, stamp[offset..], stamp_in);
     if (offset > 1) {
-        const epoch = try fmt.parseInt(
-                u32, std.os.getenv("HEXEPOCH") orelse "1984", 10);
-        _ = try fmt.bufPrint(stamp[0..2], "{x:0>2}", epoch / 64);
+        var epoch_prefix: u32 = 0x1f;
+        if (std.os.getenv("HEXEPOCH")) |epoch_arg| {
+            if (fmt.parseInt(u32, epoch_arg, 10)) |epoch| {
+                epoch_prefix = epoch / 64;
+            }
+            else |_| {
+                std.debug.warn("Bad HEXEPOCH, using default\n");
+            }
+        }
+        _ = try fmt.bufPrint(stamp[0..2], "{x:0>2}", epoch_prefix);
     }
     else if (offset > 0) {
         const epoch = try fmt.charToDigit(stamp[1], 16);
