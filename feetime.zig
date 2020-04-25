@@ -1,6 +1,5 @@
 const std = @import("std");
 const fmt = std.fmt;
-const mem = std.mem;
 const os = std.os;
 pub const time = @cImport(@cInclude("time.h"));
 
@@ -83,8 +82,8 @@ pub fn currentTime() Time {
 /// Decode a 10-digit hex string with . or : divider
 pub fn timeFromHex(stamp_in: [11]u8) !Time {
     var stamp = stamp_in;
-    if (mem.indexOfAny(u8, stamp, ".:")) |pos| {
-        mem.copy(u8, stamp[pos..], stamp[(pos + 1)..]);
+    if (std.mem.indexOfAny(u8, stamp, ".:")) |pos| {
+        std.mem.copy(u8, stamp[pos..], stamp[(pos + 1)..]);
     }
     return Time {
         .quarter = try fmt.parseInt(i24, stamp[0..4], 16),
