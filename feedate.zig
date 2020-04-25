@@ -3,10 +3,10 @@ const mem = std.mem;
 const feetime = @import("feetime.zig");
 
 pub fn main() u8 {
-    return main_delegated("000000:0000"[0..]);
+    return mainDelegated("000000:0000"[0..]);
 }
 
-pub fn main_delegated(stamp: []const u8) u8 {
+pub fn mainDelegated(stamp: []const u8) u8 {
     if (std.os.argv.len < 2) {
         std.debug.warn("Supply the hex timestamp on the command line\n");
         return 1;
