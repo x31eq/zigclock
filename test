@@ -118,11 +118,21 @@ feedate_test()
             echo "./feedate $original doesn't give $expected"
             exit 21
         fi
+        if [ "$(./decode $original)" != "$expected" ]
+        then
+            echo "./decode $original doesn't give $expected"
+            exit 22
+        fi
     else
         if [ "$(HEXEPOCH=$HEXEPOCH ./feedate $original)" != "$expected" ]
         then
             echo "HEXEPOCH=$HEXEPOCH ./feedate $original doesn't give $expected"
-            exit 22
+            exit 23
+        fi
+        if [ "$(HEXEPOCH=$HEXEPOCH ./decode $original)" != "$expected" ]
+        then
+            echo "HEXEPOCH=$HEXEPOCH ./decode $original doesn't give $expected"
+            exit 24
         fi
     fi
 }
@@ -138,11 +148,21 @@ fedate_test()
             echo "./fedate $original doesn't give $expected"
             exit 31
         fi
+        if [ "$(./decode $original)" != "$expected" ]
+        then
+            echo "./decode $original doesn't give $expected"
+            exit 32
+        fi
     else
         if [ "$(HEXEPOCH=$HEXEPOCH ./fedate $original)" != "$expected" ]
         then
             echo "HEXEPOCH=$HEXEPOCH ./fedate $original doesn't give $expected"
-            exit 32
+            exit 33
+        fi
+        if [ "$(HEXEPOCH=$HEXEPOCH ./decode $original)" != "$expected" ]
+        then
+            echo "HEXEPOCH=$HEXEPOCH ./decode $original doesn't give $expected"
+            exit 33
         fi
     fi
 }
