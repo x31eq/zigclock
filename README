@@ -100,13 +100,30 @@ So one conclusion is that you can work with command line arguments
 very efficiently with the shell.
 
 Step 1b, the shell implementations cheat really and use
-GNU date to get the current time whereas Rust and Zig use
+GNU "date" to get the current time whereas Rust and Zig use
 two-step library calls: get the time, then get broken-down local time.
-Also, the GNU date call can easily default to the current time
-when it isn't supplied.  In addition, GNU date allows very flexible
+Also, the GNU "date" call can easily default to the current time
+when it isn't supplied.  In addition, GNU "date" allows very flexible
 input, so the shell implementations get an extra feature from this.
-Other languages could have used GNU date as an external process,
+Other languages could have used GNU "date" as an external process,
 but I decided not to do that.
+
+An aside here, though: calling GNU "date" from Zig wouldn't be
+simple either.  If there's anything in the standard library
+for calling an external process, I can't find it.
+So I'd have to do it using system library calls and C headers,
+and the right way to do that is quite complicated.
+The wrong way is to use "popen", which is simpler but
+involves a shell call.  The right way in C is
+to copy from a book or a Stack Overflow search.
+The right way in Rust is to use the standard "process" module.
+The problem with Zig is that it has a small standard library
+and a small community so you have to work out the problem in C
+and then convert it to Zig, which is hardly likely to be
+easier than writing everything in C in the first place.
+It that's possible, though, that being a new member of
+a small community means you could submit your solution
+for the standard library.
 
 Step 2 also gets handled by GNU date when converting to hex.
 When the input is hex, shell makes it easy to split up tokens
