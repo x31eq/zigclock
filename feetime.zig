@@ -35,7 +35,7 @@ pub const Time = packed struct {
         // Substitute in [2]
         // day = week * 7 + weekday - qday - 5
         //       + (qday + day + 5 - (wday + day - 1)) % 7
-        // day = week * 7 + weekday - qday - 5 - (qday + 6 - wday) % 7
+        // day = week * 7 + weekday - qday - 5 + (qday + 6 - wday) % 7
         const day = self.week * 7 +% self.halfday / 2 -% qday -% 5
                 +% (6 + qday - wday) % 7;
         const toc = self.tick / 16 * 15 + self.tick % 16;
