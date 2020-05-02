@@ -11,6 +11,10 @@ https://bitbucket.org/x31eq/binaryclock
 You might also find a Rust repository that I've been
 working on in parallel.
 
+I'm working with Zig 0.5, which isn't stable, and isn't
+even the latest version.  Remember that it's still
+under development when considering the comments below.
+
 The conclusion of the Zig tryout is that it works quite
 well as a replacement for C.  This is interesting because
 C has been around for a long time and it holds
